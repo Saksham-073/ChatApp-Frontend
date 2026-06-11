@@ -5,7 +5,7 @@ import { getEcho } from '../lib/echo'
 import { useAuthStore } from './auth'
 
 export interface DMUser { id: number; name: string; email?: string }
-export interface LastMessage { message: string; sender_id: number; created_at: string }
+export interface LastMessage { id: number; message: string; sender_id: number; created_at: string; deleted_at?: string | null }
 export interface Conversation {
   id: number
   other_user: DMUser
@@ -17,6 +17,8 @@ export interface DirectMessage {
   conversation_id: number
   sender_id: number
   message: string
+  edited_at?: string | null
+  deleted_at?: string | null
   read_at?: string | null
   created_at: string
   sender: DMUser
@@ -158,6 +160,12 @@ export const useDmStore = defineStore('dm', () => {
         if (conv) conv.unread_count = (conv.unread_count ?? 0) + 1
       }
       touchConversation(e)
+    }).listen('DirectMessageUpdated', (e: DirectMessage) => {
+      applyUpdate(e)
+      refreshPreview(e)
+    }).listen('DirectMessageDeleted', (e: { id: number; conversation_id: number; deleted_at: string }) => {
+      applyUpdate({ id: e.id, message: '', deleted_at: e.deleted_at })
+      refreshPreview({ ...e, message: '' })
     })
   }
 
@@ -166,10 +174,71 @@ export const useDmStore = defineStore('dm', () => {
     const idx = conversations.value.findIndex(c => c.id === dm.conversation_id)
     const conv = conversations.value[idx]
     if (!conv) return
-    conv.last_message = { message: dm.message, sender_id: dm.sender_id, created_at: dm.created_at }
+    conv.last_message = {
+      id: dm.id,
+      message: dm.message,
+      sender_id: dm.sender_id,
+      created_at: dm.created_at,
+      deleted_at: dm.deleted_at ?? null,
+    }
     if (idx > 0) {
       conversations.value.splice(idx, 1)
       conversations.value.unshift(conv)
+    }
+  }
+
+  function applyUpdate(updated: Partial<DirectMessage> & { id: number }) {
+    const idx = messages.value.findIndex((m) => m.id === updated.id)
+    if (idx !== -1) {
+      messages.value[idx] = { ...messages.value[idx], ...updated } as DirectMessage
+    }
+  }
+
+  /** If the changed message is a conversation's latest, sync the sidebar preview. */
+  function refreshPreview(msg: {
+    id: number
+    conversation_id: number
+    message: string
+    deleted_at?: string | null
+  }) {
+    const conv = conversations.value.find((c) => c.id === msg.conversation_id)
+    if (conv?.last_message && conv.last_message.id === msg.id) {
+      conv.last_message = {
+        ...conv.last_message,
+        message: msg.message,
+        deleted_at: msg.deleted_at ?? null,
+      }
+    }
+  }
+
+  async function editMessage(id: number, content: string) {
+    if (!currentConv.value || !content.trim()) return
+    try {
+      const updated = await api.patch<DirectMessage>(
+        `/conversations/${currentConv.value.id}/messages/${id}`,
+        { message: content },
+      )
+      applyUpdate(updated)
+      refreshPreview(updated)
+    } catch (e) {
+      error.value = (e as Error).message
+    }
+  }
+
+  async function deleteMessage(id: number) {
+    if (!currentConv.value) return
+    try {
+      await api.del(`/conversations/${currentConv.value.id}/messages/${id}`)
+      const change = {
+        id,
+        conversation_id: currentConv.value.id,
+        message: '',
+        deleted_at: new Date().toISOString(),
+      }
+      applyUpdate(change)
+      refreshPreview(change)
+    } catch (e) {
+      error.value = (e as Error).message
     }
   }
 
@@ -192,5 +261,6 @@ export const useDmStore = defineStore('dm', () => {
     users, conversations, currentConv, messages,
     loadingUsers, loadingMessages, sending, error,
     fetchUsers, fetchConversations, openConversation, selectConversation, sendMessage, markRead, reset,
+    editMessage, deleteMessage,
   }
 })
