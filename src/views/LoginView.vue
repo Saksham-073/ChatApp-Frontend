@@ -4,6 +4,7 @@ import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { theme, toggleTheme } from '../lib/theme'
+import ParticleField from '../components/ParticleField.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -40,6 +41,8 @@ function toggle() {
 </script>
 
 <template>
+  <ParticleField />
+
   <div class="relative z-10 min-h-screen flex items-center justify-center px-6 py-10">
     <!-- Theme toggle -->
     <button
