@@ -48,6 +48,8 @@ interface UnifiedMsg {
   senderName: string
   text: string
   at: string
+  editedAt?: string | null
+  deletedAt?: string | null
 }
 
 const activeMessages = computed<UnifiedMsg[]>(() => {
@@ -58,6 +60,8 @@ const activeMessages = computed<UnifiedMsg[]>(() => {
       senderName: m.user?.name ?? 'Unknown',
       text: m.message,
       at: m.created_at,
+      editedAt: m.edited_at,
+      deletedAt: m.deleted_at,
     }))
   }
   if (activeView.value === 'dm') {
@@ -67,6 +71,8 @@ const activeMessages = computed<UnifiedMsg[]>(() => {
       senderName: m.sender?.name ?? 'Unknown',
       text: m.message,
       at: m.created_at,
+      editedAt: m.edited_at,
+      deletedAt: m.deleted_at,
     }))
   }
   return []
@@ -143,13 +149,78 @@ function autoGrow() {
   el.style.height = `${Math.min(el.scrollHeight, 120)}px`
 }
 
+// ── Edit / delete ────────────────────────────────────────────────────
+
+const editingId = ref<number | null>(null)
+let draftBeforeEdit = ''
+const confirmDeleteId = ref<number | null>(null)
+let confirmTimer: number | undefined
+const actionBarId = ref<number | null>(null) // tap-toggled action bar (mobile)
+
+const EDIT_WINDOW_MS = 15 * 60 * 1000
+
+function isMine(m: UnifiedMsg) {
+  return m.senderId === auth.user?.id
+}
+
+function canEdit(m: UnifiedMsg) {
+  return !m.deletedAt && Date.now() - new Date(m.at).getTime() < EDIT_WINDOW_MS
+}
+
+function toggleActions(m: UnifiedMsg) {
+  if (!isMine(m) || m.deletedAt) return
+  actionBarId.value = actionBarId.value === m.id ? null : m.id
+}
+
+function startEdit(m: UnifiedMsg) {
+  editingId.value = m.id
+  draftBeforeEdit = messageInput.value
+  messageInput.value = m.text
+  nextTick(() => {
+    autoGrow()
+    inputEl.value?.focus()
+  })
+}
+
+function cancelEdit() {
+  editingId.value = null
+  messageInput.value = draftBeforeEdit
+  draftBeforeEdit = ''
+  nextTick(autoGrow)
+}
+
+function requestDelete(m: UnifiedMsg) {
+  if (confirmDeleteId.value === m.id) {
+    confirmDeleteId.value = null
+    window.clearTimeout(confirmTimer)
+    if (activeView.value === 'room') chat.deleteMessage(m.id)
+    else dm.deleteMessage(m.id)
+    if (editingId.value === m.id) cancelEdit()
+  } else {
+    confirmDeleteId.value = m.id
+    window.clearTimeout(confirmTimer)
+    confirmTimer = window.setTimeout(() => (confirmDeleteId.value = null), 3000)
+  }
+}
+
 async function send() {
   const content = messageInput.value.trim()
   if (!content || isSending.value) return
-  messageInput.value = ''
-  nextTick(autoGrow)
-  if (activeView.value === 'room') await chat.sendMessage(content)
-  else if (activeView.value === 'dm') await dm.sendMessage(content)
+
+  if (editingId.value !== null) {
+    const id = editingId.value
+    editingId.value = null
+    messageInput.value = draftBeforeEdit
+    draftBeforeEdit = ''
+    nextTick(autoGrow)
+    if (activeView.value === 'room') await chat.editMessage(id, content)
+    else await dm.editMessage(id, content)
+  } else {
+    messageInput.value = ''
+    nextTick(autoGrow)
+    if (activeView.value === 'room') await chat.sendMessage(content)
+    else if (activeView.value === 'dm') await dm.sendMessage(content)
+  }
   inputEl.value?.focus()
 }
 
@@ -157,18 +228,22 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault()
     send()
+  } else if (e.key === 'Escape' && editingId.value !== null) {
+    cancelEdit()
   }
 }
 
 // ── Navigation ───────────────────────────────────────────────────────
 
 function selectRoom(room: Room) {
+  if (editingId.value !== null) cancelEdit()
   activeView.value = 'room'
   sidebarOpen.value = false
   chat.selectRoom(room)
 }
 
 async function selectConv(conv: Conversation) {
+  if (editingId.value !== null) cancelEdit()
   activeView.value = 'dm'
   sidebarOpen.value = false
   await dm.selectConversation(conv)
@@ -341,11 +416,11 @@ onUnmounted(() => {
                 :class="[
                   'flex gap-3 max-w-[88%] md:max-w-[70%] msg-rise',
                   item.showHeader ? 'mt-3' : 'mt-1',
-                  item.msg.senderId === auth.user?.id ? 'self-end flex-row-reverse' : 'self-start',
+                  isMine(item.msg) ? 'self-end flex-row-reverse' : 'self-start',
                 ]"
               >
                 <!-- Avatar (theirs, first of group only) -->
-                <div v-if="item.msg.senderId !== auth.user?.id" class="w-8 shrink-0">
+                <div v-if="!isMine(item.msg)" class="w-8 shrink-0">
                   <div
                     v-if="item.showHeader"
                     class="w-8 h-8 rounded-lg bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center text-white text-[10px] font-bold"
@@ -356,26 +431,86 @@ onUnmounted(() => {
                 </div>
 
                 <div
-                  :class="[
-                    'flex flex-col min-w-0',
-                    item.msg.senderId === auth.user?.id ? 'items-end' : 'items-start',
-                  ]"
+                  :class="['flex flex-col min-w-0', isMine(item.msg) ? 'items-end' : 'items-start']"
                 >
                   <div v-if="item.showHeader" class="flex items-baseline gap-2 mb-1 px-0.5">
                     <span class="text-ink-3 text-xs font-semibold">
-                      {{ item.msg.senderId === auth.user?.id ? 'You' : item.msg.senderName }}
+                      {{ isMine(item.msg) ? 'You' : item.msg.senderName }}
                     </span>
                     <span class="text-ink-4 text-[10px]">{{ fmt(item.msg.at) }}</span>
+                    <span
+                      v-if="item.msg.editedAt && !item.msg.deletedAt"
+                      class="text-ink-4 text-[10px] italic"
+                      >(edited)</span
+                    >
                   </div>
                   <div
-                    :class="[
-                      'px-4 py-2.5 text-sm leading-relaxed wrap-break-words whitespace-pre-wrap rounded-2xl',
-                      item.msg.senderId === auth.user?.id
-                        ? 'bg-linear-to-br from-cyan-500 to-violet-600 text-white rounded-br-md shadow-[0_6px_24px_rgba(124,58,237,0.3)]'
-                        : 'glass text-ink-2 rounded-bl-md',
-                    ]"
+                    class="group flex items-center gap-1.5"
+                    :class="isMine(item.msg) ? 'flex-row-reverse' : ''"
                   >
-                    {{ item.msg.text }}
+                    <!-- Tombstone -->
+                    <div
+                      v-if="item.msg.deletedAt"
+                      class="px-4 py-2.5 text-sm italic rounded-2xl glass text-ink-4 flex items-center gap-1.5"
+                    >
+                      <Icon icon="lucide:ban" class="w-3.5 h-3.5" />
+                      This message was deleted
+                    </div>
+
+                    <!-- Normal bubble -->
+                    <div
+                      v-else
+                      :class="[
+                        'px-4 py-2.5 text-sm leading-relaxed wrap-break-words whitespace-pre-wrap rounded-2xl',
+                        isMine(item.msg)
+                          ? 'bg-linear-to-br from-cyan-500 to-violet-600 text-white rounded-br-md shadow-[0_6px_24px_rgba(124,58,237,0.3)]'
+                          : 'glass text-ink-2 rounded-bl-md',
+                      ]"
+                      @click="toggleActions(item.msg)"
+                    >
+                      {{ item.msg.text }}
+                    </div>
+
+                    <!-- Edit/delete actions (own, non-deleted messages) -->
+                    <div
+                      v-if="isMine(item.msg) && !item.msg.deletedAt"
+                      :class="[
+                        'flex items-center gap-0.5 transition-opacity',
+                        actionBarId === item.msg.id
+                          ? 'opacity-100'
+                          : 'opacity-0 group-hover:opacity-100',
+                      ]"
+                    >
+                      <button
+                        v-if="canEdit(item.msg)"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center text-ink-4 hover:text-cyan-600 dark:hover:text-cyan-300 hover:bg-hovered cursor-pointer"
+                        title="Edit message"
+                        @click="startEdit(item.msg)"
+                      >
+                        <Icon icon="lucide:pencil" class="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        :class="[
+                          'w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer hover:bg-hovered',
+                          confirmDeleteId === item.msg.id
+                            ? 'text-rose-500'
+                            : 'text-ink-4 hover:text-rose-500',
+                        ]"
+                        :title="
+                          confirmDeleteId === item.msg.id
+                            ? 'Tap again to confirm'
+                            : 'Delete message'
+                        "
+                        @click="requestDelete(item.msg)"
+                      >
+                        <Icon
+                          :icon="
+                            confirmDeleteId === item.msg.id ? 'lucide:check' : 'lucide:trash-2'
+                          "
+                          class="w-3.5 h-3.5"
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -395,6 +530,16 @@ onUnmounted(() => {
 
         <!-- Composer -->
         <div class="px-4 md:px-6 pb-5 pt-2 shrink-0">
+          <div
+            v-if="editingId !== null"
+            class="flex items-center justify-between px-3 pb-1.5 text-xs text-ink-3"
+          >
+            <span class="flex items-center gap-1.5">
+              <Icon icon="lucide:pencil" class="w-3 h-3" />
+              Editing message
+            </span>
+            <button class="hover:text-ink cursor-pointer" @click="cancelEdit">Cancel (Esc)</button>
+          </div>
           <div
             class="glass rounded-2xl flex items-end gap-2 p-2 focus-within:border-cyan-400/40 transition-colors"
           >

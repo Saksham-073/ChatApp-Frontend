@@ -274,8 +274,11 @@ function isActiveConv(conv: Conversation) {
                 :class="(conv.unread_count ?? 0) > 0 ? 'text-ink-2 font-medium' : 'text-ink-3'"
               >
                 <template v-if="conv.last_message">
-                  {{ conv.last_message.sender_id === auth.user?.id ? 'You: ' : ''
-                  }}{{ conv.last_message.message }}
+                  <span v-if="conv.last_message.deleted_at" class="italic">Message deleted</span>
+                  <template v-else>
+                    {{ conv.last_message.sender_id === auth.user?.id ? 'You: ' : ''
+                    }}{{ conv.last_message.message }}
+                  </template>
                 </template>
                 <template v-else>No messages yet</template>
               </p>
