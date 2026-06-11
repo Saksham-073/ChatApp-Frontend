@@ -173,8 +173,10 @@ function toggleActions(m: UnifiedMsg) {
 }
 
 function startEdit(m: UnifiedMsg) {
+  if (editingId.value === null) {
+    draftBeforeEdit = messageInput.value // capture only when entering edit mode, not when switching targets
+  }
   editingId.value = m.id
-  draftBeforeEdit = messageInput.value
   messageInput.value = m.text
   nextTick(() => {
     autoGrow()
@@ -237,6 +239,8 @@ function onKeydown(e: KeyboardEvent) {
 
 function selectRoom(room: Room) {
   if (editingId.value !== null) cancelEdit()
+  actionBarId.value = null
+  confirmDeleteId.value = null
   activeView.value = 'room'
   sidebarOpen.value = false
   chat.selectRoom(room)
@@ -244,6 +248,8 @@ function selectRoom(room: Room) {
 
 async function selectConv(conv: Conversation) {
   if (editingId.value !== null) cancelEdit()
+  actionBarId.value = null
+  confirmDeleteId.value = null
   activeView.value = 'dm'
   sidebarOpen.value = false
   await dm.selectConversation(conv)
