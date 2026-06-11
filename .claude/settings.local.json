@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/sakshamjamwal/Desktop/work/ChatApp/chatApp-Backend/**)",
+      "Bash(php artisan *)",
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}
