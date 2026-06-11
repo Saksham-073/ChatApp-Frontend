@@ -188,6 +188,9 @@ onBeforeUnmount(() => {
   lines?.geometry.dispose()
   pointsMaterial?.dispose()
   lineMaterial?.dispose()
+  // forceContextLoss before dispose() releases the WebGL context — dispose() alone
+  // leaves it for GC, leaking contexts across login/logout re-mount cycles.
+  renderer?.forceContextLoss()
   renderer?.dispose()
   renderer = null
 })
