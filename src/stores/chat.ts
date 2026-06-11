@@ -9,6 +9,8 @@ export interface ChatMessage {
   chat_room_id: number
   user_id: number
   message: string
+  edited_at?: string | null
+  deleted_at?: string | null
   created_at: string
   user: { id: number; name: string }
 }
@@ -70,6 +72,36 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  function applyUpdate(updated: Partial<ChatMessage> & { id: number }) {
+    const idx = messages.value.findIndex((m) => m.id === updated.id)
+    if (idx !== -1) {
+      messages.value[idx] = { ...messages.value[idx], ...updated } as ChatMessage
+    }
+  }
+
+  async function editMessage(id: number, content: string) {
+    if (!currentRoom.value || !content.trim()) return
+    try {
+      const updated = await api.patch<ChatMessage>(
+        `/chat/room/${currentRoom.value.id}/messages/${id}`,
+        { message: content },
+      )
+      applyUpdate(updated)
+    } catch (e) {
+      error.value = (e as Error).message
+    }
+  }
+
+  async function deleteMessage(id: number) {
+    if (!currentRoom.value) return
+    try {
+      await api.del(`/chat/room/${currentRoom.value.id}/messages/${id}`)
+      applyUpdate({ id, message: '', deleted_at: new Date().toISOString() })
+    } catch (e) {
+      error.value = (e as Error).message
+    }
+  }
+
   async function createRoom(name: string) {
     const room = await api.post<Room>('/chat/rooms', { name })
     rooms.value.push(room)
@@ -78,11 +110,16 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function joinChannel(roomId: number) {
-    getEcho().channel(`chat-room.${roomId}`).listen('MessageSent', (e: ChatMessage) => {
+    const channel = getEcho().channel(`chat-room.${roomId}`)
+    channel.listen('MessageSent', (e: ChatMessage) => {
       if (!messages.value.find(m => m.id === e.id)) {
         messages.value.push(e)
       }
     })
+    channel.listen('MessageUpdated', (e: ChatMessage) => applyUpdate(e))
+    channel.listen('MessageDeleted', (e: { id: number; deleted_at: string }) =>
+      applyUpdate({ id: e.id, message: '', deleted_at: e.deleted_at }),
+    )
   }
 
   function leaveCurrentChannel() {
@@ -103,5 +140,6 @@ export const useChatStore = defineStore('chat', () => {
     rooms, currentRoom, messages,
     loadingRooms, loadingMessages, sending, error,
     fetchRooms, selectRoom, sendMessage, createRoom, reset,
+    editMessage, deleteMessage,
   }
 })
