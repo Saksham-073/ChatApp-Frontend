@@ -10,6 +10,7 @@ Talks to the Laravel backend in the `chatApp-Backend` repository over REST (`/ap
 - **Direct messages** — private one-on-one conversations over authenticated private channels
 - **Live everywhere** — subscribed to *all* your conversations, so closed chats still get unread badges, last-message previews, and reorder to the top in real time
 - **Read receipts & unread counts** — conversations are marked read on open
+- **Edit & delete** — edit your own messages within 15 minutes (hover/tap actions, composer edit mode, "(edited)" label); soft-delete anytime with a two-tap confirm, leaving a "this message was deleted" tombstone. Both sync live to the other side
 - **Smart scrolling** — auto-scrolls only when you're near the bottom; otherwise shows a "N new messages" pill
 - **Message UX** — date separators (Today/Yesterday), grouped consecutive messages, auto-growing composer (Enter sends, Shift+Enter for newline)
 - **Session restore** — refresh-safe auth: token in localStorage, user re-fetched via `/api/me` behind a route guard
@@ -27,6 +28,7 @@ Talks to the Laravel backend in the `chatApp-Backend` repository over REST (`/ap
 | State | Pinia |
 | Routing | Vue Router (auth guards) |
 | Styling | Tailwind CSS v4 (CSS-variable theme tokens) |
+| Icons | Iconify (`@iconify/vue`, `lucide` set) |
 | Real-time | laravel-echo + pusher-js |
 | Font | Sora (Google Fonts) |
 
@@ -75,17 +77,22 @@ npm run format    # prettier
 src/
 ├── lib/
 │   ├── config.ts    # API_ORIGIN — auto-detects the backend host
-│   ├── api.ts       # fetch wrapper: bearer token, X-Socket-ID, 401 handling, pagination types
+│   ├── api.ts       # fetch wrapper: bearer token, X-Socket-ID, 401, 204, pagination types
 │   ├── echo.ts      # lazy Echo factory (private channel auth), connectionState ref
-│   └── theme.ts     # light/dark mode: localStorage + .dark class on <html>
+│   ├── theme.ts     # light/dark mode: localStorage + .dark class on <html>
+│   └── ui.ts        # shared view helpers: initials, avatar hue, relative time, connStatus
 ├── stores/
 │   ├── auth.ts      # login/register/logout, cached init() session restore
-│   ├── chat.ts      # rooms, room messages, public channel subscription
-│   └── dm.ts        # users, conversations, DMs, per-conversation private channels,
-│                    #   unread counts, mark-read, last-message previews
+│   ├── chat.ts      # rooms, room messages, send/edit/delete, public channel subscription
+│   └── dm.ts        # users, conversations, DMs, send/edit/delete, per-conversation private
+│                    #   channels, unread counts, mark-read, last-message previews
+├── components/
+│   ├── Navbar.vue     # desktop icon rail (filters, theme toggle, avatar, logout)
+│   ├── Sidebar.vue    # conversation list drawer (search, rooms + DMs, create room)
+│   └── Header.vue     # thread header (title, connection status, mobile menu button)
 ├── views/
 │   ├── LoginView.vue  # glass auth card + theme toggle
-│   └── ChatView.vue   # 3-pane layout: icon rail / conversation list / thread
+│   └── ChatView.vue   # thread pane orchestrator: messages, edit/delete, composer, toasts
 ├── router/index.ts    # guards await auth.init() before navigating
 ├── assets/main.css    # theme tokens (light/dark), aurora backdrop, glass utilities
 └── App.vue            # aurora backdrop + session-restore loader
