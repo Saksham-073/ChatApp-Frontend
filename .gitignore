@@ -37,3 +37,6 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# Superpowers workflow artifacts (specs/plans) — kept locally, not versioned
+docs/superpowers/
