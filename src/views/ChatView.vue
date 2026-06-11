@@ -186,6 +186,7 @@ function startEdit(m: UnifiedMsg) {
 
 function cancelEdit() {
   editingId.value = null
+  actionBarId.value = null
   messageInput.value = draftBeforeEdit
   draftBeforeEdit = ''
   nextTick(autoGrow)
@@ -198,6 +199,7 @@ function requestDelete(m: UnifiedMsg) {
     if (activeView.value === 'room') chat.deleteMessage(m.id)
     else dm.deleteMessage(m.id)
     if (editingId.value === m.id) cancelEdit()
+    actionBarId.value = null
   } else {
     confirmDeleteId.value = m.id
     window.clearTimeout(confirmTimer)
@@ -212,6 +214,7 @@ async function send() {
   if (editingId.value !== null) {
     const id = editingId.value
     editingId.value = null
+    actionBarId.value = null
     messageInput.value = draftBeforeEdit
     draftBeforeEdit = ''
     nextTick(autoGrow)
