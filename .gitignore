@@ -40,3 +40,6 @@ __screenshots__/
 
 # Superpowers workflow artifacts (specs/plans) — kept locally, not versioned
 docs/superpowers/
+
+# Claude Code local config — kept locally, not versioned
+.claude/
