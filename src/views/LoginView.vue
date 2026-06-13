@@ -46,7 +46,7 @@ function toggle() {
   <div class="relative z-10 min-h-screen flex items-center justify-center px-6 py-10">
     <!-- Theme toggle -->
     <button
-      class="fixed top-5 right-5 w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-3 hover:text-ink transition-colors cursor-pointer"
+      class="fixed top-5 right-5 w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-3 hover:text-ink transition-all active:scale-90 ease-(--ease-spring) cursor-pointer"
       :title="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
       @click="toggleTheme"
     >
@@ -57,11 +57,12 @@ function toggle() {
       <!-- Logo -->
       <div class="flex flex-col items-center gap-4 mb-8">
         <div
-          class="w-14 h-14 rounded-2xl bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center shadow-[0_0_60px_rgba(124,58,237,0.5)]"
+          class="w-14 h-14 rounded-2xl bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center shadow-[0_0_60px_rgba(124,58,237,0.5)] stagger-rise"
+          :style="{ '--i': 0 }"
         >
           <Icon icon="lucide:message-square" class="w-7 h-7 text-white" />
         </div>
-        <div class="text-center">
+        <div class="text-center stagger-rise" :style="{ '--i': 1 }">
           <h1 class="text-ink text-2xl font-bold tracking-tight">
             {{ mode === 'login' ? 'Welcome back' : 'Create account' }}
           </h1>
@@ -77,7 +78,9 @@ function toggle() {
 
       <!-- Glass card -->
       <div
-        class="glass rounded-3xl p-8 shadow-[0_24px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+        v-glow
+        class="glass rounded-3xl p-8 shadow-[0_24px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] stagger-rise glow-border"
+        :style="{ '--i': 2 }"
       >
         <form class="flex flex-col gap-4" @submit.prevent="submit">
           <div v-if="mode === 'register'" class="flex flex-col gap-1.5">
@@ -126,7 +129,7 @@ function toggle() {
           <button
             type="submit"
             :disabled="loading"
-            class="mt-1 bg-linear-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3 text-sm flex items-center justify-center gap-2 transition-all shadow-[0_8px_30px_rgba(124,58,237,0.35)] hover:shadow-[0_8px_40px_rgba(124,58,237,0.5)] cursor-pointer"
+            class="mt-1 bg-linear-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3 text-sm flex items-center justify-center gap-2 transition-all active:scale-97 ease-(--ease-spring) shadow-[0_8px_30px_rgba(124,58,237,0.35)] hover:shadow-[0_8px_40px_rgba(124,58,237,0.5)] cursor-pointer"
           >
             <span
               v-if="loading"
@@ -138,7 +141,7 @@ function toggle() {
       </div>
 
       <!-- Toggle -->
-      <p class="text-ink-3 text-sm text-center mt-6">
+      <p class="text-ink-3 text-sm text-center mt-6 stagger-rise" :style="{ '--i': 3 }">
         {{ mode === 'login' ? "Don't have an account?" : 'Already have an account?' }}
         <button
           class="text-transparent bg-clip-text bg-linear-to-r from-cyan-600 to-violet-600 dark:from-cyan-400 dark:to-violet-400 font-semibold ml-1 cursor-pointer"
