@@ -409,7 +409,7 @@ onUnmounted(() => {
               <p class="text-ink-4 text-sm">No messages yet — say something!</p>
             </div>
 
-            <template v-for="item in renderItems" :key="item.key">
+            <template v-for="(item, idx) in renderItems" :key="item.key">
               <!-- Date separator -->
               <div v-if="item.type === 'date'" class="flex justify-center my-5">
                 <span
@@ -422,8 +422,9 @@ onUnmounted(() => {
               <!-- Message -->
               <div
                 v-else
+                :style="{ '--i': Math.min(idx, 10) }"
                 :class="[
-                  'flex gap-3 max-w-[88%] md:max-w-[70%] msg-rise',
+                  'flex gap-3 max-w-[88%] md:max-w-[70%] stagger-rise',
                   item.showHeader ? 'mt-3' : 'mt-1',
                   isMine(item.msg) ? 'self-end flex-row-reverse' : 'self-start',
                 ]"
@@ -469,10 +470,11 @@ onUnmounted(() => {
                     <!-- Normal bubble -->
                     <div
                       v-else
+                      v-glow
                       :class="[
                         'px-4 py-2.5 text-sm leading-relaxed wrap-break-words whitespace-pre-wrap rounded-2xl',
                         isMine(item.msg)
-                          ? 'bg-linear-to-br from-cyan-500 to-violet-600 text-white rounded-br-md shadow-[0_6px_24px_rgba(124,58,237,0.3)]'
+                          ? 'bg-linear-to-br from-cyan-500 to-violet-600 text-white rounded-br-md shadow-[0_6px_24px_rgba(124,58,237,0.3)] glow-border'
                           : 'glass text-ink-2 rounded-bl-md',
                       ]"
                       @click="toggleActions(item.msg)"
@@ -492,7 +494,7 @@ onUnmounted(() => {
                     >
                       <button
                         v-if="canEdit(item.msg)"
-                        class="w-7 h-7 rounded-lg flex items-center justify-center text-ink-4 hover:text-cyan-600 dark:hover:text-cyan-300 hover:bg-hovered cursor-pointer"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center text-ink-4 hover:text-cyan-600 dark:hover:text-cyan-300 hover:bg-hovered active:scale-90 transition-transform ease-(--ease-spring) cursor-pointer"
                         title="Edit message"
                         @click="startEdit(item.msg)"
                       >
@@ -500,7 +502,7 @@ onUnmounted(() => {
                       </button>
                       <button
                         :class="[
-                          'w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer hover:bg-hovered',
+                          'w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer hover:bg-hovered active:scale-90 transition-transform ease-(--ease-spring)',
                           confirmDeleteId === item.msg.id
                             ? 'text-rose-500'
                             : 'text-ink-4 hover:text-rose-500',
@@ -570,7 +572,7 @@ onUnmounted(() => {
             />
             <button
               :disabled="!messageInput.trim() || isSending"
-              class="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-500 to-violet-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-white shrink-0 transition-all hover:shadow-[0_4px_20px_rgba(124,58,237,0.5)] cursor-pointer"
+              class="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-500 to-violet-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-white shrink-0 transition-all active:scale-90 ease-(--ease-spring) hover:shadow-[0_4px_20px_rgba(124,58,237,0.5)] cursor-pointer"
               @click="send"
             >
               <span
