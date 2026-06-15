@@ -210,7 +210,7 @@ function isActiveConv(conv: Conversation) {
             v-for="(room, idx) in filteredRooms"
             :key="room.id"
             v-glow
-            :style="{ '--i': idx }"
+            :style="{ '--i': Math.min(idx, 10) }"
             :class="[
               'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm cursor-pointer transition-all stagger-rise glow-border ease-(--ease-spring)',
               isActiveRoom(room)
@@ -248,7 +248,7 @@ function isActiveConv(conv: Conversation) {
             v-for="(conv, idx) in filteredConvs"
             :key="conv.id"
             v-glow
-            :style="{ '--i': idx }"
+            :style="{ '--i': Math.min(idx, 10) }"
             :class="[
               'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all stagger-rise glow-border ease-(--ease-spring)',
               isActiveConv(conv)
