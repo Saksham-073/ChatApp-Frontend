@@ -43,7 +43,7 @@ function toggle() {
 <template>
   <ParticleField />
 
-  <div class="relative z-10 min-h-screen flex items-center justify-center px-6 py-10">
+  <div class="relative z-10 min-h-dvh flex items-center justify-center px-6 py-10">
     <!-- Theme toggle -->
     <button
       class="fixed top-5 right-5 w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-3 hover:text-ink transition-all active:scale-90 ease-(--ease-spring) cursor-pointer"
@@ -63,7 +63,7 @@ function toggle() {
           <Icon icon="raphael:chat" class="w-7 h-7 text-white" />
         </div>
         <div class="text-center stagger-rise" :style="{ '--i': 1 }">
-          <h1 class="text-ink text-2xl font-bold tracking-tight">
+          <h1 class="text-ink text-3xl font-bold tracking-tight">
             {{ mode === 'login' ? 'Welcome back' : 'Create account' }}
           </h1>
           <p class="text-ink-3 text-sm mt-1.5">
@@ -84,7 +84,7 @@ function toggle() {
       >
         <form class="flex flex-col gap-4" @submit.prevent="submit">
           <div v-if="mode === 'register'" class="flex flex-col gap-1.5">
-            <label class="text-ink-3 text-[11px] font-semibold uppercase tracking-[0.14em]"
+            <label class="text-ink-3 text-xs font-medium"
               >Name</label
             >
             <input
@@ -98,7 +98,7 @@ function toggle() {
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label class="text-ink-3 text-[11px] font-semibold uppercase tracking-[0.14em]"
+            <label class="text-ink-3 text-xs font-medium"
               >Email</label
             >
             <input
@@ -112,7 +112,7 @@ function toggle() {
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label class="text-ink-3 text-[11px] font-semibold uppercase tracking-[0.14em]"
+            <label class="text-ink-3 text-xs font-medium"
               >Password</label
             >
             <input
@@ -135,7 +135,7 @@ function toggle() {
               v-if="loading"
               class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
             />
-            {{ loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account' }}
+            {{ loading ? (mode === 'login' ? 'Signing in...' : 'Creating account...') : (mode === 'login' ? 'Sign in' : 'Create account') }}
           </button>
         </form>
       </div>
