@@ -209,6 +209,15 @@ body {
   }
 }
 
+/* ── Keyboard focus ─────────────────────────────────────────────── */
+
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(34, 211, 238, 0.65);
+  outline-offset: 3px;
+}
+
 /* ── Scrollbars ──────────────────────────────────────────────────── */
 
 * {

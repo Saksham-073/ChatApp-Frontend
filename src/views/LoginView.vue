@@ -60,7 +60,7 @@ function toggle() {
           class="w-14 h-14 rounded-2xl bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center shadow-[0_0_60px_rgba(124,58,237,0.5)] stagger-rise"
           :style="{ '--i': 0 }"
         >
-          <Icon icon="lucide:message-square" class="w-7 h-7 text-white" />
+          <Icon icon="raphael:chat" class="w-7 h-7 text-white" />
         </div>
         <div class="text-center stagger-rise" :style="{ '--i': 1 }">
           <h1 class="text-ink text-2xl font-bold tracking-tight">
@@ -79,7 +79,7 @@ function toggle() {
       <!-- Glass card -->
       <div
         v-glow
-        class="glass rounded-3xl p-8 shadow-[0_24px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] stagger-rise glow-border"
+        class="glass rounded-3xl p-8 shadow-[0_24px_80px_rgba(124,58,237,0.14)] dark:shadow-[0_24px_80px_rgba(124,58,237,0.38)] stagger-rise glow-border"
         :style="{ '--i': 2 }"
       >
         <form class="flex flex-col gap-4" @submit.prevent="submit">
