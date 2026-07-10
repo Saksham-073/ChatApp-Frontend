@@ -25,7 +25,7 @@ const dm = useDmStore()
 
     <template v-if="activeView === 'room' && chat.currentRoom">
       <span
-        class="w-8 h-8 rounded-lg bg-linear-to-br from-cyan-500/25 to-violet-600/25 flex items-center justify-center text-cyan-600 dark:text-cyan-300 font-bold shrink-0"
+        class="w-8 h-8 rounded-lg bg-linear-to-br from-violet-500/25 to-violet-700/25 flex items-center justify-center text-violet-500 dark:text-violet-400 font-bold shrink-0"
         >#</span
       >
       <span class="text-ink text-sm font-semibold truncate">{{ chat.currentRoom.name }}</span>
@@ -33,7 +33,7 @@ const dm = useDmStore()
 
     <template v-else-if="activeView === 'dm' && dm.currentConv">
       <div
-        class="w-8 h-8 rounded-lg bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center text-white text-[11px] font-bold shrink-0"
+        class="w-8 h-8 rounded-lg bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-[11px] font-bold shrink-0"
         :style="{ filter: hue(dm.currentConv.other_user.id) }"
       >
         {{ initials(dm.currentConv.other_user.name) }}
@@ -48,7 +48,7 @@ const dm = useDmStore()
     </template>
 
     <template v-else>
-      <span class="text-ink-3 text-sm font-medium">ChatApp</span>
+      <span class="text-ink-3 text-sm font-medium">Echo</span>
     </template>
 
     <span class="ml-auto text-xs flex items-center gap-1.5 shrink-0" :class="connStatus.text">

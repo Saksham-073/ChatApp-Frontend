@@ -346,7 +346,7 @@ onUnmounted(() => {
       <template v-if="!activeView">
         <div class="flex-1 flex flex-col items-center justify-center gap-5 px-6">
           <div
-            class="w-20 h-20 rounded-3xl glass flex items-center justify-center shadow-[0_0_60px_rgba(34,211,238,0.12)]"
+            class="w-20 h-20 rounded-3xl glass flex items-center justify-center shadow-[0_0_60px_rgba(139,92,246,0.15)]"
           >
             <Icon icon="lucide:message-square" class="w-9 h-9 text-ink-4" />
           </div>
@@ -362,7 +362,7 @@ onUnmounted(() => {
         <div class="flex-1 overflow-y-auto px-4 md:px-6 py-5">
           <div v-if="dm.loadingUsers" class="flex justify-center py-8">
             <span
-              class="w-5 h-5 border-2 border-edge border-t-cyan-500 rounded-full animate-spin"
+              class="w-5 h-5 border-2 border-edge border-t-violet-500 rounded-full animate-spin"
             />
           </div>
           <ul v-else class="flex flex-col gap-2 max-w-xl">
@@ -373,7 +373,7 @@ onUnmounted(() => {
               @click="openNewDm(user.id)"
             >
               <div
-                class="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center text-white text-sm font-bold shrink-0"
+                class="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-sm font-bold shrink-0"
                 :style="{ filter: hue(user.id) }"
               >
                 {{ initials(user.name) }}
@@ -404,7 +404,7 @@ onUnmounted(() => {
           >
             <div v-if="isLoadingMessages && !renderItems.length" class="flex justify-center py-8">
               <span
-                class="w-5 h-5 border-2 border-edge border-t-cyan-500 rounded-full animate-spin"
+                class="w-5 h-5 border-2 border-edge border-t-violet-500 rounded-full animate-spin"
               />
             </div>
 
@@ -436,7 +436,7 @@ onUnmounted(() => {
                 <div v-if="!isMine(item.msg)" class="w-8 shrink-0">
                   <div
                     v-if="item.showHeader"
-                    class="w-8 h-8 rounded-lg bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center text-white text-[10px] font-bold"
+                    class="w-8 h-8 rounded-lg bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-[10px] font-bold"
                     :style="{ filter: hue(item.msg.senderId) }"
                   >
                     {{ initials(item.msg.senderName) }}
@@ -477,7 +477,7 @@ onUnmounted(() => {
                       :class="[
                         'px-4 py-2.5 text-sm leading-relaxed wrap-break-words whitespace-pre-wrap rounded-2xl',
                         isMine(item.msg)
-                          ? 'bg-linear-to-br from-cyan-500 to-violet-600 text-white rounded-br-md shadow-[0_6px_24px_rgba(124,58,237,0.3)] glow-border'
+                          ? 'bg-linear-to-br from-violet-500 to-violet-700 text-white rounded-br-md shadow-[0_6px_24px_rgba(139,92,246,0.35)] glow-border'
                           : 'glass text-ink-2 rounded-bl-md',
                       ]"
                       @click="toggleActions(item.msg)"
@@ -497,7 +497,7 @@ onUnmounted(() => {
                     >
                       <button
                         v-if="canEdit(item.msg)"
-                        class="w-7 h-7 rounded-lg flex items-center justify-center text-ink-4 hover:text-cyan-600 dark:hover:text-cyan-300 hover:bg-hovered active:scale-90 transition-transform ease-(--ease-spring) cursor-pointer"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center text-ink-4 hover:text-violet-500 dark:hover:text-violet-400 hover:bg-hovered active:scale-90 transition-transform ease-(--ease-spring) cursor-pointer"
                         title="Edit message"
                         @click="startEdit(item.msg)"
                       >
@@ -534,7 +534,7 @@ onUnmounted(() => {
           <!-- New messages pill -->
           <button
             v-if="newCount > 0"
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-linear-to-r from-cyan-500 to-violet-600 text-white text-xs font-semibold rounded-full px-4 py-2 shadow-[0_8px_30px_rgba(124,58,237,0.5)] flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-transform"
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-linear-to-r from-violet-500 to-violet-700 text-white text-xs font-semibold rounded-full px-4 py-2 shadow-[0_8px_30px_rgba(139,92,246,0.5)] flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-transform"
             @click="scrollToBottom"
           >
             <Icon icon="lucide:arrow-down" class="w-3.5 h-3.5" />
@@ -555,7 +555,7 @@ onUnmounted(() => {
             <button class="hover:text-ink cursor-pointer" @click="cancelEdit">Cancel (Esc)</button>
           </div>
           <div
-            class="glass rounded-2xl flex items-end gap-2 p-2 focus-within:border-cyan-400/40 transition-colors"
+            class="glass rounded-2xl flex items-end gap-2 p-2 focus-within:border-violet-500/40 transition-colors"
           >
             <textarea
               ref="inputEl"
@@ -575,7 +575,7 @@ onUnmounted(() => {
             />
             <button
               :disabled="!messageInput.trim() || isSending"
-              class="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-500 to-violet-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-white shrink-0 transition-all active:scale-90 ease-(--ease-spring) hover:shadow-[0_4px_20px_rgba(124,58,237,0.5)] cursor-pointer"
+              class="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-violet-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-white shrink-0 transition-all active:scale-90 ease-(--ease-spring) hover:shadow-[0_4px_20px_rgba(139,92,246,0.5)] cursor-pointer"
               @click="send"
             >
               <span

@@ -45,21 +45,21 @@
 }
 
 .dark {
-  --app-bg: #05070e;
+  --app-bg: #131314;
   --ink-1: #f8fafc;
   --ink-2: #cbd5e1;
   --ink-3: #94a3b8;
   --ink-4: #64748b;
-  --glass-bg: rgba(255, 255, 255, 0.035);
-  --glass-soft-bg: rgba(255, 255, 255, 0.025);
-  --glass-border: rgba(255, 255, 255, 0.07);
-  --field-bg: rgba(255, 255, 255, 0.04);
-  --edge: rgba(255, 255, 255, 0.08);
-  --hover-bg: rgba(255, 255, 255, 0.04);
-  --active-bg: rgba(255, 255, 255, 0.07);
-  --scrollbar: rgba(148, 163, 184, 0.18);
+  --glass-bg: rgba(139, 92, 246, 0.06);
+  --glass-soft-bg: rgba(139, 92, 246, 0.04);
+  --glass-border: rgba(139, 92, 246, 0.18);
+  --field-bg: rgba(139, 92, 246, 0.07);
+  --edge: rgba(139, 92, 246, 0.14);
+  --hover-bg: rgba(139, 92, 246, 0.07);
+  --active-bg: rgba(139, 92, 246, 0.12);
+  --scrollbar: rgba(139, 92, 246, 0.25);
   --blob-opacity: 1;
-  --noise-opacity: 0.05;
+  --noise-opacity: 0.04;
 }
 
 @theme inline {
@@ -111,7 +111,7 @@ body {
   height: 55vmax;
   top: -18%;
   left: -12%;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.32), transparent 65%);
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.4), transparent 65%);
   animation: drift-a 26s ease-in-out infinite alternate;
 }
 
@@ -120,7 +120,7 @@ body {
   height: 50vmax;
   bottom: -22%;
   right: -14%;
-  background: radial-gradient(circle, rgba(124, 58, 237, 0.34), transparent 65%);
+  background: radial-gradient(circle, rgba(109, 40, 217, 0.35), transparent 65%);
   animation: drift-b 32s ease-in-out infinite alternate;
 }
 
@@ -129,7 +129,7 @@ body {
   height: 34vmax;
   top: 38%;
   left: 42%;
-  background: radial-gradient(circle, rgba(219, 39, 119, 0.18), transparent 65%);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.2), transparent 65%);
   animation: drift-c 38s ease-in-out infinite alternate;
 }
 
@@ -189,7 +189,7 @@ body {
     padding: 1px;
     background: radial-gradient(
       180px circle at var(--mx, 50%) var(--my, 50%),
-      rgba(34, 211, 238, 0.5),
+      rgba(139, 92, 246, 0.5),
       transparent 70%
     );
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -234,7 +234,7 @@ body {
 button:focus-visible,
 [role="button"]:focus-visible,
 a:focus-visible {
-  outline: 2px solid rgba(34, 211, 238, 0.65);
+  outline: 2px solid rgba(139, 92, 246, 0.65);
   outline-offset: 3px;
 }
 
