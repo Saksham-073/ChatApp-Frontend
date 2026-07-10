@@ -35,7 +35,7 @@ const mouse = { x: 0, y: 0 }
 
 function particleColor(): number {
   // Brighter in dark mode, deeper for contrast on the light background.
-  return theme.value === 'dark' ? 0x67e8f9 : 0x7c3aed
+  return 0x8B5CF6
 }
 
 function seedParticles() {

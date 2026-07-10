@@ -97,14 +97,14 @@ function isActiveConv(conv: Conversation) {
         <h1 class="text-ink text-lg font-bold tracking-tight">Messages</h1>
         <div class="flex items-center gap-1">
           <button
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-ink-4 hover:text-cyan-600 dark:hover:text-cyan-300 hover:bg-hovered transition-all cursor-pointer"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-ink-4 hover:text-violet-500 dark:hover:text-violet-400 hover:bg-hovered transition-all cursor-pointer"
             title="New direct message"
             @click="emit('show-users')"
           >
             <Icon icon="lucide:user-plus" class="w-4 h-4" />
           </button>
           <button
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-ink-4 hover:text-cyan-600 dark:hover:text-cyan-300 hover:bg-hovered transition-all cursor-pointer"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-ink-4 hover:text-violet-500 dark:hover:text-violet-400 hover:bg-hovered transition-all cursor-pointer"
             title="Create room"
             @click="showRoomForm = !showRoomForm"
           >
@@ -122,7 +122,7 @@ function isActiveConv(conv: Conversation) {
       <!-- Mobile user row -->
       <div class="flex md:hidden items-center gap-2 mb-3 mt-2">
         <div
-          class="w-7 h-7 rounded-lg bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center text-white text-[10px] font-bold"
+          class="w-7 h-7 rounded-lg bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-[10px] font-bold"
           :style="{ filter: auth.user ? hue(auth.user.id) : undefined }"
         >
           {{ auth.user ? initials(auth.user.name) : '?' }}
@@ -157,7 +157,7 @@ function isActiveConv(conv: Conversation) {
         <input
           v-model="search"
           placeholder="Search conversations"
-          class="w-full bg-field border border-edge rounded-xl pl-10 pr-4 py-2.5 text-ink text-sm outline-none placeholder-ink-4 focus:border-cyan-400/50 transition-all"
+          class="w-full bg-field border border-edge rounded-xl pl-10 pr-4 py-2.5 text-ink text-sm outline-none placeholder-ink-4 focus:border-violet-500/50 transition-all"
         />
       </div>
 
@@ -169,7 +169,7 @@ function isActiveConv(conv: Conversation) {
           :class="[
             'flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer',
             filter === f
-              ? 'bg-active text-cyan-600 dark:text-cyan-300'
+              ? 'bg-active text-violet-500 dark:text-violet-400'
               : 'text-ink-4 hover:text-ink-2',
           ]"
           @click="filter = f"
@@ -184,12 +184,12 @@ function isActiveConv(conv: Conversation) {
         v-model="roomName"
         placeholder="Room name"
         maxlength="50"
-        class="flex-1 min-w-0 bg-field border border-edge rounded-lg px-3 py-2 text-ink text-xs outline-none placeholder-ink-4 focus:border-cyan-400/50"
+        class="flex-1 min-w-0 bg-field border border-edge rounded-lg px-3 py-2 text-ink text-xs outline-none placeholder-ink-4 focus:border-violet-500/50"
       />
       <button
         type="submit"
         :disabled="!roomName.trim() || creatingRoom"
-        class="bg-linear-to-r from-cyan-500 to-violet-600 disabled:opacity-40 text-white text-xs font-semibold rounded-lg px-3.5 cursor-pointer active:scale-97 transition-transform ease-(--ease-spring)"
+        class="bg-linear-to-r from-violet-500 to-violet-700 disabled:opacity-40 text-white text-xs font-semibold rounded-lg px-3.5 cursor-pointer active:scale-97 transition-transform ease-(--ease-spring)"
       >
         {{ creatingRoom ? '...' : 'Add' }}
       </button>
@@ -203,7 +203,7 @@ function isActiveConv(conv: Conversation) {
           Rooms
         </p>
         <div v-if="chat.loadingRooms" class="flex justify-center py-4">
-          <span class="w-4 h-4 border-2 border-edge border-t-cyan-500 rounded-full animate-spin" />
+          <span class="w-4 h-4 border-2 border-edge border-t-violet-500 rounded-full animate-spin" />
         </div>
         <ul v-else class="flex flex-col gap-0.5 mb-3">
           <li
@@ -214,7 +214,7 @@ function isActiveConv(conv: Conversation) {
             :class="[
               'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm cursor-pointer transition-all stagger-rise glow-border ease-(--ease-spring)',
               isActiveRoom(room)
-                ? 'bg-active shadow-[inset_0_0_0_1px_rgba(34,211,238,0.2)]'
+                ? 'bg-active shadow-[inset_0_0_0_1px_rgba(139,92,246,0.2)]'
                 : 'hover:bg-hovered',
             ]"
             @click="emit('select-room', room)"
@@ -223,12 +223,12 @@ function isActiveConv(conv: Conversation) {
               class="w-9 h-9 rounded-xl flex items-center justify-center text-base font-bold shrink-0"
               :class="
                 isActiveRoom(room)
-                  ? 'bg-linear-to-br from-cyan-500/30 to-violet-600/30 text-cyan-600 dark:text-cyan-300'
+                  ? 'bg-linear-to-br from-violet-500/30 to-violet-700/30 text-violet-500 dark:text-violet-400'
                   : 'bg-field text-ink-3'
               "
               >#</span
             >
-            <span :class="isActiveRoom(room) ? 'text-cyan-700 dark:text-cyan-200' : 'text-ink-2'">
+            <span :class="isActiveRoom(room) ? 'text-violet-600 dark:text-violet-300' : 'text-ink-2'">
               {{ room.name }}
             </span>
           </li>
@@ -252,13 +252,13 @@ function isActiveConv(conv: Conversation) {
             :class="[
               'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all stagger-rise glow-border ease-(--ease-spring)',
               isActiveConv(conv)
-                ? 'bg-active shadow-[inset_0_0_0_1px_rgba(34,211,238,0.2)]'
+                ? 'bg-active shadow-[inset_0_0_0_1px_rgba(139,92,246,0.2)]'
                 : 'hover:bg-hovered',
             ]"
             @click="emit('select-conv', conv)"
           >
             <div
-              class="w-9 h-9 rounded-xl bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center text-white text-[11px] font-bold shrink-0"
+              class="w-9 h-9 rounded-xl bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-[11px] font-bold shrink-0"
               :style="{ filter: hue(conv.other_user.id) }"
             >
               {{ initials(conv.other_user.name) }}
@@ -268,7 +268,7 @@ function isActiveConv(conv: Conversation) {
                 <span
                   class="text-sm truncate"
                   :class="[
-                    isActiveConv(conv) ? 'text-cyan-700 dark:text-cyan-200' : 'text-ink-2',
+                    isActiveConv(conv) ? 'text-violet-600 dark:text-violet-300' : 'text-ink-2',
                     (conv.unread_count ?? 0) > 0 ? 'font-bold' : 'font-medium',
                   ]"
                   >{{ conv.other_user.name }}</span
@@ -293,7 +293,7 @@ function isActiveConv(conv: Conversation) {
             </div>
             <span
               v-if="(conv.unread_count ?? 0) > 0"
-              class="bg-linear-to-r from-cyan-500 to-violet-600 text-white text-[10px] font-bold rounded-full min-w-[19px] h-[19px] px-1.5 flex items-center justify-center shrink-0 shadow-[0_2px_10px_rgba(124,58,237,0.5)]"
+              class="bg-linear-to-r from-violet-500 to-violet-700 text-white text-[10px] font-bold rounded-full min-w-[19px] h-[19px] px-1.5 flex items-center justify-center shrink-0 shadow-[0_2px_10px_rgba(139,92,246,0.5)]"
               >{{ (conv.unread_count ?? 0) > 99 ? '99+' : conv.unread_count }}</span
             >
           </li>

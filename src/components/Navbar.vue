@@ -18,7 +18,7 @@ const auth = useAuthStore()
   >
     <!-- Logo orb -->
     <div
-      class="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center shadow-[0_0_28px_rgba(124,58,237,0.45)] mb-4"
+      class="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-[0_0_28px_rgba(139,92,246,0.5)] mb-4"
     >
       <Icon icon="raphael:chat" class="w-5 h-5 text-white" />
     </div>
@@ -34,7 +34,7 @@ const auth = useAuthStore()
       :class="[
         'w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90 ease-(--ease-spring) cursor-pointer',
         filter === f.key
-          ? 'bg-active text-cyan-600 dark:text-cyan-300 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.25)]'
+          ? 'bg-active text-violet-500 dark:text-violet-400 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.25)]'
           : 'text-ink-4 hover:text-ink-2 hover:bg-hovered',
       ]"
       @click="filter = f.key"
@@ -46,7 +46,7 @@ const auth = useAuthStore()
       :class="[
         'w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold transition-all active:scale-90 ease-(--ease-spring) cursor-pointer',
         filter === 'rooms'
-          ? 'bg-active text-cyan-600 dark:text-cyan-300 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.25)]'
+          ? 'bg-active text-violet-500 dark:text-violet-400 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.25)]'
           : 'text-ink-4 hover:text-ink-2 hover:bg-hovered',
       ]"
       @click="filter = 'rooms'"
@@ -72,7 +72,7 @@ const auth = useAuthStore()
 
     <!-- User avatar + logout -->
     <div
-      class="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-400 to-violet-600 flex items-center justify-center text-white text-xs font-bold"
+      class="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-xs font-bold"
       :style="{ filter: auth.user ? hue(auth.user.id) : undefined }"
       :title="auth.user?.name"
     >
