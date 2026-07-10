@@ -195,18 +195,23 @@ function animate() {
 
 onMounted(() => {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !canvas.value) return
-  try {
-    renderer = new THREE.WebGLRenderer({ canvas: canvas.value, alpha: true, antialias: true })
-  } catch {
-    return
-  }
-  renderer.setClearColor(0x000000, 0)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  build()
-  resize()
-  animate()
-  ro = new ResizeObserver(resize)
-  ro.observe(canvas.value)
+  const el = canvas.value
+  // Defer to next paint so flex layout has settled and clientWidth/clientHeight are non-zero
+  requestAnimationFrame(() => {
+    if (!el) return
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas: el, alpha: true, antialias: true })
+    } catch {
+      return
+    }
+    renderer.setClearColor(0x000000, 0)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    build()
+    resize()
+    animate()
+    ro = new ResizeObserver(resize)
+    ro.observe(el)
+  })
 })
 
 onBeforeUnmount(() => {
