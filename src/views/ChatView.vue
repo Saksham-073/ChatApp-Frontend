@@ -142,7 +142,10 @@ watch(
 
 // ── Sending ──────────────────────────────────────────────────────────
 
+const supportsFieldSizing = CSS.supports('field-sizing', 'content')
+
 function autoGrow() {
+  if (supportsFieldSizing) return
   const el = inputEl.value
   if (!el) return
   el.style.height = 'auto'
@@ -566,7 +569,7 @@ onUnmounted(() => {
                     : 'Message'
               "
               maxlength="2000"
-              class="flex-1 resize-none bg-transparent px-3 py-2 text-ink text-sm outline-none placeholder-ink-4"
+              class="flex-1 resize-none bg-transparent px-3 py-2 text-ink text-sm outline-none placeholder-ink-4 field-sizing-content max-h-[120px]"
               @input="autoGrow"
               @keydown="onKeydown"
             />
@@ -579,7 +582,7 @@ onUnmounted(() => {
                 v-if="isSending"
                 class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
               />
-              <Icon v-else icon="ic:round-send" class="w-[18px] h-[18px]" />
+              <Icon v-else icon="lucide:send-horizontal" class="w-[18px] h-[18px]" />
             </button>
           </div>
         </div>
