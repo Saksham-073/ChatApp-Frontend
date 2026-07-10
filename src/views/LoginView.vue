@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/auth'
 import { theme, toggleTheme } from '../lib/theme'
 
 const ParticleField = defineAsyncComponent(() => import('../components/ParticleField.vue'))
+const GlobeOrb = defineAsyncComponent(() => import('../components/GlobeOrb.vue'))
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -54,64 +55,65 @@ function toggle() {
   </button>
 
   <div class="relative z-10 min-h-dvh flex">
-    <!-- ── Left panel: brand identity (lg+) ──────────────────────── -->
-    <div class="hidden lg:flex w-[45%] shrink-0 items-center justify-center p-12">
-      <div
-        v-glow
-        class="glass glow-border rounded-3xl p-10 flex flex-col items-center gap-8 w-full max-w-md shadow-[0_32px_80px_rgba(139,92,246,0.22)] stagger-rise"
-        :style="{ '--i': 0 }"
-      >
-        <!-- Holographic orb -->
-        <div class="relative w-52 h-52 flex items-center justify-center">
-          <!-- Outer rotating ring -->
-          <div
-            class="absolute inset-0 rounded-full border border-violet-500/25 animate-spin"
-            style="animation-duration: 10s"
-          >
-            <span class="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.9)]" />
+    <!-- ── Left panel: 3D terminal ────────────────────────────────── -->
+    <div class="hidden lg:flex w-[45%] shrink-0 p-6">
+      <div class="flex-1 min-h-0 rounded-2xl border border-violet-500/25 bg-black/65 backdrop-blur-md flex flex-col overflow-hidden shadow-[0_0_80px_rgba(139,92,246,0.1)] stagger-rise" :style="{ '--i': 0 }">
+
+        <!-- Top status bar -->
+        <div class="flex items-center justify-between px-5 py-3 border-b border-violet-500/10 shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.9)] shrink-0" />
+            <span class="text-[9px] font-mono tracking-[0.18em] text-emerald-400/90 uppercase">Neural Link Established</span>
           </div>
-          <!-- Inner reverse ring -->
-          <div
-            class="absolute inset-5 rounded-full border border-violet-400/20 animate-spin"
-            style="animation-duration: 7s; animation-direction: reverse"
-          >
-            <span class="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-violet-300 shadow-[0_0_6px_rgba(167,139,250,0.9)]" />
-          </div>
-          <!-- Equatorial ring -->
-          <div
-            class="absolute inset-10 rounded-full border border-violet-300/15 animate-spin"
-            style="animation-duration: 14s"
-          >
-            <span class="absolute top-1/2 -right-1 -translate-y-1/2 w-1 h-1 rounded-full bg-violet-200 shadow-[0_0_4px_rgba(196,181,253,0.9)]" />
-          </div>
-          <!-- Core orb -->
-          <div class="absolute inset-14 rounded-full bg-linear-to-br from-violet-400/60 to-violet-900/80 shadow-[0_0_40px_rgba(139,92,246,0.7),inset_0_1px_0_rgba(255,255,255,0.15)] flex items-center justify-center">
-            <Icon icon="raphael:chat" class="w-7 h-7 text-violet-100" />
-          </div>
-          <!-- Ambient glow -->
-          <div class="absolute inset-0 rounded-full shadow-[0_0_80px_rgba(139,92,246,0.22)]" />
+          <svg viewBox="0 0 90 18" class="w-[68px] h-3.5 text-violet-400/50 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="0,9 10,9 14,2 19,16 24,3 29,9 38,9 43,5 47,13 51,9 90,9" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" />
+          </svg>
         </div>
 
-        <!-- Brand -->
-        <div class="text-center stagger-rise" :style="{ '--i': 1 }">
-          <h1 class="text-4xl font-bold text-ink tracking-tight">Echo</h1>
-          <p class="text-ink-3 text-xs mt-2 tracking-[0.2em] uppercase">Decentralized Intelligence</p>
+        <!-- Title -->
+        <div class="px-8 pt-6 pb-2 text-center shrink-0">
+          <p class="text-base font-bold tracking-[0.28em] text-white/90 uppercase select-none">Decentralized</p>
+          <p class="text-base font-bold tracking-[0.28em] text-violet-400 uppercase select-none mt-0.5">Intelligence</p>
         </div>
 
-        <!-- Terminal status lines -->
-        <div class="w-full flex flex-col gap-2.5 font-mono stagger-rise" :style="{ '--i': 2 }">
-          <div class="flex items-center gap-2.5 text-xs text-ink-3">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)] shrink-0" />
-            Neural Link Established
+        <!-- 3D Globe -->
+        <div class="flex-1 min-h-0 overflow-hidden">
+          <GlobeOrb />
+        </div>
+
+        <!-- Info card -->
+        <div class="mx-5 mb-4 border border-violet-500/20 rounded-xl p-4 flex items-start gap-3.5 bg-violet-950/25 shrink-0">
+          <svg viewBox="0 0 36 36" class="w-9 h-9 shrink-0 text-violet-400/80 mt-0.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="18,2 32,10 32,26 18,34 4,26 4,10" stroke="currentColor" stroke-width="1.2" />
+            <polygon points="18,8 26,12.5 26,23.5 18,28 10,23.5 10,12.5" stroke="currentColor" stroke-width="0.8" opacity="0.55" />
+            <line x1="18" y1="2" x2="18" y2="8" stroke="currentColor" stroke-width="0.7" opacity="0.4" />
+            <line x1="32" y1="10" x2="26" y2="12.5" stroke="currentColor" stroke-width="0.7" opacity="0.4" />
+            <line x1="32" y1="26" x2="26" y2="23.5" stroke="currentColor" stroke-width="0.7" opacity="0.4" />
+            <line x1="18" y1="34" x2="18" y2="28" stroke="currentColor" stroke-width="0.7" opacity="0.4" />
+            <line x1="4" y1="26" x2="10" y2="23.5" stroke="currentColor" stroke-width="0.7" opacity="0.4" />
+            <line x1="4" y1="10" x2="10" y2="12.5" stroke="currentColor" stroke-width="0.7" opacity="0.4" />
+          </svg>
+          <div>
+            <p class="text-[11px] leading-relaxed text-ink-3">The future of communication is private, intelligent, and decentralized.</p>
+            <p class="text-[11px] text-violet-400 font-semibold mt-1.5">Built on trust. Secured by you.</p>
           </div>
-          <div class="flex items-center gap-2.5 text-xs text-ink-3">
-            <span class="w-1.5 h-1.5 rounded-full bg-violet-400 shadow-[0_0_6px_rgba(139,92,246,0.8)] shrink-0" />
+        </div>
+
+        <!-- Bottom status bar -->
+        <div class="flex items-center justify-between px-5 py-2.5 border-t border-violet-500/10 shrink-0">
+          <span class="flex items-center gap-1.5 text-[9px] font-mono tracking-widest text-ink-4 uppercase">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+            Network: Echo Protocol
+          </span>
+          <div class="flex items-center gap-1.5">
+            <span class="w-5 h-[2px] rounded-full bg-violet-500/80" />
+            <span class="w-5 h-[2px] rounded-full bg-violet-500" />
+            <span class="w-5 h-[2px] rounded-full bg-violet-500/35" />
+          </div>
+          <span class="flex items-center gap-1.5 text-[9px] font-mono tracking-widest text-ink-4 uppercase">
             Status: Synchronized
-          </div>
-          <div class="flex items-center gap-2.5 text-xs text-ink-4">
-            <span class="w-1.5 h-1.5 rounded-full bg-violet-500/50 shrink-0" />
-            End-to-end encrypted
-          </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+          </span>
         </div>
       </div>
     </div>
@@ -136,10 +138,10 @@ function toggle() {
         <!-- Desktop heading -->
         <div class="hidden lg:block mb-6 stagger-rise" :style="{ '--i': 1 }">
           <h2 class="text-ink text-3xl font-bold tracking-tight">
-            {{ mode === 'login' ? 'Echo Terminal' : 'Register Node' }}
+            {{ mode === 'login' ? 'Echo Terminal' : 'Register' }}
           </h2>
           <p class="text-ink-3 text-sm mt-2">
-            {{ mode === 'login' ? 'Authenticate to access the network' : 'Create your node identity' }}
+            {{ mode === 'login' ? 'Authenticate to access the network' : 'Create your account' }}
           </p>
         </div>
 
@@ -151,7 +153,7 @@ function toggle() {
         >
           <form class="flex flex-col gap-4" @submit.prevent="submit">
             <div v-if="mode === 'register'" class="flex flex-col gap-1.5">
-              <label for="login-name" class="text-ink-3 text-xs font-medium">Node Identity</label>
+              <label for="login-name" class="text-ink-3 text-xs font-medium">Name</label>
               <input
                 id="login-name"
                 v-model="name"
@@ -164,12 +166,12 @@ function toggle() {
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label for="login-email" class="text-ink-3 text-xs font-medium">Terminal ID</label>
+              <label for="login-email" class="text-ink-3 text-xs font-medium">Username</label>
               <input
                 id="login-email"
                 v-model="email"
                 type="email"
-                placeholder="node@echo.network"
+                placeholder="Username/Email"
                 required
                 :autofocus="mode === 'login'"
                 class="bg-field border border-edge rounded-xl px-4 py-2.5 text-ink text-sm font-mono outline-none placeholder-ink-4 focus:border-violet-500/60 transition-all"
@@ -177,7 +179,7 @@ function toggle() {
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label for="login-password" class="text-ink-3 text-xs font-medium">Security Key</label>
+              <label for="login-password" class="text-ink-3 text-xs font-medium">Password</label>
               <input
                 id="login-password"
                 v-model="password"
@@ -199,19 +201,19 @@ function toggle() {
                 v-if="loading"
                 class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
               />
-              {{ loading ? (mode === 'login' ? 'Authenticating...' : 'Registering node...') : (mode === 'login' ? 'Initialize Session' : 'Register Node') }}
+              {{ loading ? (mode === 'login' ? 'Authenticating...' : 'Registering...') : (mode === 'login' ? 'Initialize Session' : 'Register ') }}
             </button>
           </form>
         </div>
 
         <!-- Mode toggle -->
         <p class="text-ink-3 text-sm text-center mt-6 stagger-rise" :style="{ '--i': 3 }">
-          {{ mode === 'login' ? 'Need network access?' : 'Already have a node?' }}
+          {{ mode === 'login' ? 'Need network access?' : 'Already have an account?' }}
           <button
             class="text-violet-500 dark:text-violet-400 font-semibold ml-1 cursor-pointer hover:text-violet-400 dark:hover:text-violet-300 transition-colors"
             @click="toggle"
           >
-            {{ mode === 'login' ? 'Register Node' : 'Return to Terminal' }}
+            {{ mode === 'login' ? 'Register ' : 'Return to Login' }}
           </button>
         </p>
       </div>
