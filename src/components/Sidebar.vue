@@ -133,13 +133,17 @@ function isActiveConv(conv: Conversation) {
           {{ connStatus.label }}
         </span>
         <button
-          class="text-ink-4 hover:text-ink-2 ml-1"
+          class="text-ink-4 hover:text-ink-2 ml-1 active:scale-90 transition-transform ease-(--ease-spring)"
           :title="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
           @click="toggleTheme"
         >
           <Icon :icon="theme === 'dark' ? 'lucide:sun' : 'lucide:moon'" class="w-4 h-4" />
         </button>
-        <button class="text-ink-4 hover:text-rose-500 ml-1" title="Logout" @click="emit('logout')">
+        <button
+          class="text-ink-4 hover:text-rose-500 ml-1 active:scale-90 transition-transform ease-(--ease-spring)"
+          title="Logout"
+          @click="emit('logout')"
+        >
           <Icon icon="lucide:log-out" class="w-4 h-4" />
         </button>
       </div>
@@ -185,7 +189,7 @@ function isActiveConv(conv: Conversation) {
       <button
         type="submit"
         :disabled="!roomName.trim() || creatingRoom"
-        class="bg-linear-to-r from-cyan-500 to-violet-600 disabled:opacity-40 text-white text-xs font-semibold rounded-lg px-3.5 cursor-pointer"
+        class="bg-linear-to-r from-cyan-500 to-violet-600 disabled:opacity-40 text-white text-xs font-semibold rounded-lg px-3.5 cursor-pointer active:scale-97 transition-transform ease-(--ease-spring)"
       >
         {{ creatingRoom ? '...' : 'Add' }}
       </button>
@@ -195,7 +199,7 @@ function isActiveConv(conv: Conversation) {
     <div class="flex-1 overflow-y-auto px-3 pb-4">
       <!-- Rooms -->
       <template v-if="filteredRooms.length || filter === 'rooms'">
-        <p class="text-ink-4 text-[10px] font-bold uppercase tracking-[0.16em] px-3 mb-1.5 mt-1">
+        <p class="text-ink-4 text-[10px] font-semibold px-3 mb-1.5 mt-1">
           Rooms
         </p>
         <div v-if="chat.loadingRooms" class="flex justify-center py-4">
@@ -203,10 +207,12 @@ function isActiveConv(conv: Conversation) {
         </div>
         <ul v-else class="flex flex-col gap-0.5 mb-3">
           <li
-            v-for="room in filteredRooms"
+            v-for="(room, idx) in filteredRooms"
             :key="room.id"
+            v-glow
+            :style="{ '--i': Math.min(idx, 10) }"
             :class="[
-              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm cursor-pointer transition-all',
+              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm cursor-pointer transition-all stagger-rise glow-border ease-(--ease-spring)',
               isActiveRoom(room)
                 ? 'bg-active shadow-[inset_0_0_0_1px_rgba(34,211,238,0.2)]'
                 : 'hover:bg-hovered',
@@ -234,15 +240,17 @@ function isActiveConv(conv: Conversation) {
 
       <!-- DMs -->
       <template v-if="filteredConvs.length || filter !== 'rooms'">
-        <p class="text-ink-4 text-[10px] font-bold uppercase tracking-[0.16em] px-3 mb-1.5 mt-1">
+        <p class="text-ink-4 text-[10px] font-semibold px-3 mb-1.5 mt-1">
           Direct
         </p>
         <ul class="flex flex-col gap-0.5">
           <li
-            v-for="conv in filteredConvs"
+            v-for="(conv, idx) in filteredConvs"
             :key="conv.id"
+            v-glow
+            :style="{ '--i': Math.min(idx, 10) }"
             :class="[
-              'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all',
+              'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all stagger-rise glow-border ease-(--ease-spring)',
               isActiveConv(conv)
                 ? 'bg-active shadow-[inset_0_0_0_1px_rgba(34,211,238,0.2)]'
                 : 'hover:bg-hovered',
