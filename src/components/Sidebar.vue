@@ -199,7 +199,7 @@ function isActiveConv(conv: Conversation) {
     <div class="flex-1 overflow-y-auto px-3 pb-4">
       <!-- Rooms -->
       <template v-if="filteredRooms.length || filter === 'rooms'">
-        <p class="text-ink-4 text-[10px] font-bold uppercase tracking-[0.16em] px-3 mb-1.5 mt-1">
+        <p class="text-ink-4 text-[10px] font-semibold px-3 mb-1.5 mt-1">
           Rooms
         </p>
         <div v-if="chat.loadingRooms" class="flex justify-center py-4">
@@ -240,7 +240,7 @@ function isActiveConv(conv: Conversation) {
 
       <!-- DMs -->
       <template v-if="filteredConvs.length || filter !== 'rooms'">
-        <p class="text-ink-4 text-[10px] font-bold uppercase tracking-[0.16em] px-3 mb-1.5 mt-1">
+        <p class="text-ink-4 text-[10px] font-semibold px-3 mb-1.5 mt-1">
           Direct
         </p>
         <ul class="flex flex-col gap-0.5">

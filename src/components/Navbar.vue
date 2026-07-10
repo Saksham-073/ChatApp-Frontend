@@ -32,7 +32,7 @@ const auth = useAuthStore()
       :key="f.key"
       :title="f.title"
       :class="[
-        'w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer',
+        'w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90 ease-(--ease-spring) cursor-pointer',
         filter === f.key
           ? 'bg-active text-cyan-600 dark:text-cyan-300 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.25)]'
           : 'text-ink-4 hover:text-ink-2 hover:bg-hovered',
@@ -44,7 +44,7 @@ const auth = useAuthStore()
     <button
       title="Rooms"
       :class="[
-        'w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer',
+        'w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold transition-all active:scale-90 ease-(--ease-spring) cursor-pointer',
         filter === 'rooms'
           ? 'bg-active text-cyan-600 dark:text-cyan-300 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.25)]'
           : 'text-ink-4 hover:text-ink-2 hover:bg-hovered',

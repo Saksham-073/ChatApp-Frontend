@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, defineAsyncComponent } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { theme, toggleTheme } from '../lib/theme'
-import ParticleField from '../components/ParticleField.vue'
+
+const ParticleField = defineAsyncComponent(() => import('../components/ParticleField.vue'))
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -84,10 +85,9 @@ function toggle() {
       >
         <form class="flex flex-col gap-4" @submit.prevent="submit">
           <div v-if="mode === 'register'" class="flex flex-col gap-1.5">
-            <label class="text-ink-3 text-xs font-medium"
-              >Name</label
-            >
+            <label for="login-name" class="text-ink-3 text-xs font-medium">Name</label>
             <input
+              id="login-name"
               v-model="name"
               type="text"
               placeholder="Your full name"
@@ -98,10 +98,9 @@ function toggle() {
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label class="text-ink-3 text-xs font-medium"
-              >Email</label
-            >
+            <label for="login-email" class="text-ink-3 text-xs font-medium">Email</label>
             <input
+              id="login-email"
               v-model="email"
               type="email"
               placeholder="you@example.com"
@@ -112,10 +111,9 @@ function toggle() {
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label class="text-ink-3 text-xs font-medium"
-              >Password</label
-            >
+            <label for="login-password" class="text-ink-3 text-xs font-medium">Password</label>
             <input
+              id="login-password"
               v-model="password"
               type="password"
               placeholder="••••••••"
