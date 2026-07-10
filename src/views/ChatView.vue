@@ -321,7 +321,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative z-10 h-screen flex overflow-hidden text-ink-2">
+  <div class="relative z-10 h-dvh flex overflow-hidden text-ink-2">
     <Navbar v-model:filter="filter" @logout="logout" />
 
     <Sidebar
