@@ -45,3 +45,4 @@ docs/superpowers/
 # Claude Code local config — kept locally, not versioned
 .claude/
 graphify-out
+.worktrees/
