@@ -125,6 +125,18 @@ function circleGeo(r: number, segs = 128): THREE.BufferGeometry {
   return track(new THREE.BufferGeometry().setFromPoints(curve.getPoints(segs)))
 }
 
+function circlePointTex(): THREE.Texture {
+  const S = 64
+  const cv = document.createElement('canvas')
+  cv.width = cv.height = S
+  const ctx = cv.getContext('2d')!
+  ctx.beginPath()
+  ctx.arc(S / 2, S / 2, S / 2, 0, Math.PI * 2)
+  ctx.fillStyle = 'white'
+  ctx.fill()
+  return track(new THREE.CanvasTexture(cv))
+}
+
 function glowTexture(): THREE.Texture {
   const S = 256
   const cv = document.createElement('canvas')
@@ -173,7 +185,8 @@ function applyColors() {
   if (connMatRef) {
     connMatRef.vertexColors = dark
     connMatRef.color.set(dark ? 0xffffff : accentHex)
-    connMatRef.opacity = dark ? 0.9 : 0.4
+    // Low opacity in light: stacked segments at poles accumulate; 0.06 keeps them visible without solid blob
+    connMatRef.opacity = dark ? 0.9 : 0.06
     connMatRef.needsUpdate = true
   }
 
@@ -192,6 +205,7 @@ function buildSphere(parent: THREE.Group): Updater {
 
   const ptsMat = track(new THREE.PointsMaterial({
     color: CFG.color.bright, size: pointSize, transparent: true, opacity: 0.95,
+    map: circlePointTex(),
     blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
   }))
   coloredMats.push({ mat: ptsMat, key: 'bright' })
@@ -316,7 +330,7 @@ function buildGround(parent: THREE.Scene): Updater {
     const pt = (t * 0.35) % 1
     pulse.scale.setScalar(1.2 + pt * (CFG.ground.pulseMax - 1.2))
     pulseMat.opacity = Math.min(1, 0.4 * ef * lb * (1 - pt))
-    discMat.opacity = Math.min(1, ef * lb * (0.32 + Math.abs(Math.sin(t * 1.1)) * 0.3))
+    discMat.opacity = ef * (0.32 + Math.abs(Math.sin(t * 1.1)) * 0.3) * (theme.value === 'dark' ? 1 : 0.7)
   }
 }
 
