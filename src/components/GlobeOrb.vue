@@ -60,7 +60,9 @@ let disposables: { dispose(): void }[] = []
 
 // Theme-reactive colour state — read each frame by updaters
 type HasColor = { color: THREE.Color }
-const coloredMats: Array<{ mat: HasColor; key: 'accent' | 'bright' }> = []
+const coloredMats:  Array<{ mat: HasColor; key: 'accent' | 'bright' }> = []
+const blendableMats: THREE.Material[] = []
+let connMatRef: THREE.LineBasicMaterial | null = null
 let accentHex:   number = CFG.color.accent
 let brightHex:   number = CFG.color.bright
 let glowMult:    number = 1.0
@@ -149,14 +151,32 @@ const easeOut3 = (x: number) => 1 - (1 - Math.min(1, x)) ** 3
 
 function applyColors() {
   const dark = theme.value === 'dark'
-  accentHex   = dark ? CFG.color.accent : 0x7c3aed
-  brightHex   = dark ? CFG.color.bright : 0x8b5cf6
-  glowMult    = dark ? 1.0 : 0.55
-  bloomTarget = dark ? CFG.bloom.strength : CFG.bloom.strength * 0.7
+  // Deep purples in light mode — must be readable on near-white background
+  accentHex   = dark ? CFG.color.accent : 0x4c1d95
+  brightHex   = dark ? CFG.color.bright : 0x5b21b6
+  // Hide additive glow + kill bloom in light mode (both create a blown-out white blob)
+  glowMult    = dark ? 1.0 : 0.0
+  bloomTarget = dark ? CFG.bloom.strength : 0.0
 
   for (const { mat, key } of coloredMats) {
     mat.color.set(key === 'accent' ? accentHex : brightHex)
   }
+
+  // Switch blending: additive = invisible on light bg, normal = solid/visible
+  const blendMode = dark ? THREE.AdditiveBlending : THREE.NormalBlending
+  for (const mat of blendableMats) {
+    mat.blending = blendMode
+    mat.needsUpdate = true
+  }
+
+  // Connection lines: vertex colours are dark in light mode → switch to solid colour
+  if (connMatRef) {
+    connMatRef.vertexColors = dark
+    connMatRef.color.set(dark ? 0xffffff : accentHex)
+    connMatRef.opacity = dark ? 0.9 : 0.4
+    connMatRef.needsUpdate = true
+  }
+
   if (bloomPass && enterT >= 1) bloomPass.strength = bloomTarget
 }
 
@@ -181,6 +201,8 @@ function buildSphere(parent: THREE.Group): Updater {
     vertexColors: true, transparent: true, opacity: 0.9,
     blending: THREE.AdditiveBlending, depthWrite: false,
   }))
+  connMatRef = connMat
+  blendableMats.push(ptsMat as THREE.Material)
   parent.add(new THREE.LineSegments(
     connectionGeometry(origPos, count, connectionDist, connectionCap), connMat,
   ))
@@ -196,7 +218,7 @@ function buildSphere(parent: THREE.Group): Updater {
       posBuf[i * 3 + 2] = origPos[i * 3 + 2]! * f
     }
     ;(geo.attributes.position as THREE.BufferAttribute).needsUpdate = true
-    connMat.opacity = 0.72 + Math.sin(t * 0.9) * 0.18
+    if (theme.value === 'dark') connMat.opacity = 0.72 + Math.sin(t * 0.9) * 0.18
   }
 }
 
@@ -231,6 +253,7 @@ function buildRings(parent: THREE.Scene): Updater {
   const items = CFG.rings.map((d, i) => {
     const mat = additiveLineMat(CFG.color.accent, d.opacity)
     coloredMats.push({ mat, key: 'accent' })
+    blendableMats.push(mat)
     const pivot = new THREE.Group()
     const line = new THREE.Line(circleGeo(d.radius, 180), mat)
     line.rotation.x = Math.PI / 2          
@@ -243,9 +266,10 @@ function buildRings(parent: THREE.Scene): Updater {
 
   return (t) => {
     const ef = easeOut3(enterT)
+    const lightBoost = theme.value === 'dark' ? 1 : 3.5
     for (const r of items) {
       r.pivot.rotation.y = t * r.speed
-      r.mat.opacity = r.base * ef * (0.75 + Math.sin(t * 1.1 + r.phase) * 0.25)
+      r.mat.opacity = Math.min(1, r.base * ef * lightBoost * (0.75 + Math.sin(t * 1.1 + r.phase) * 0.25))
     }
   }
 }
@@ -256,6 +280,7 @@ function buildGround(parent: THREE.Scene): Updater {
   const staticMats = CFG.ground.ringRadii.map((r, i) => {
     const mat = additiveLineMat(CFG.color.accent, 0.22 - i * 0.08)
     coloredMats.push({ mat, key: 'accent' })
+    blendableMats.push(mat)
     const line = new THREE.Line(circleGeo(r), mat)
     line.rotation.x = Math.PI / 2
     line.position.y = groundY
@@ -265,6 +290,7 @@ function buildGround(parent: THREE.Scene): Updater {
 
   const pulseMat = additiveLineMat(CFG.color.bright, 0)
   coloredMats.push({ mat: pulseMat, key: 'bright' })
+  blendableMats.push(pulseMat)
   const pulse = new THREE.Line(circleGeo(1), pulseMat)
   pulse.rotation.x = Math.PI / 2
   pulse.position.y = groundY
@@ -275,6 +301,7 @@ function buildGround(parent: THREE.Scene): Updater {
     blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false,
   }))
   coloredMats.push({ mat: discMat, key: 'bright' })
+  blendableMats.push(discMat)
   const disc = new THREE.Mesh(track(new THREE.CircleGeometry(0.55, 48)), discMat)
   disc.rotation.x = -Math.PI / 2
   disc.position.y = groundY + 0.02
@@ -282,13 +309,14 @@ function buildGround(parent: THREE.Scene): Updater {
 
   return (t) => {
     const ef = easeOut3(enterT)
+    const lb = theme.value === 'dark' ? 1 : 4
     staticMats.forEach((s, i) => {
-      s.mat.opacity = s.base * ef * (0.7 + Math.sin(t * 0.4 + i) * 0.3)
+      s.mat.opacity = Math.min(1, s.base * ef * lb * (0.7 + Math.sin(t * 0.4 + i) * 0.3))
     })
     const pt = (t * 0.35) % 1
     pulse.scale.setScalar(1.2 + pt * (CFG.ground.pulseMax - 1.2))
-    pulseMat.opacity = 0.4 * ef * (1 - pt)
-    discMat.opacity = ef * (0.32 + Math.abs(Math.sin(t * 1.1)) * 0.3)
+    pulseMat.opacity = Math.min(1, 0.4 * ef * lb * (1 - pt))
+    discMat.opacity = Math.min(1, ef * lb * (0.32 + Math.abs(Math.sin(t * 1.1)) * 0.3))
   }
 }
 
@@ -418,6 +446,8 @@ onBeforeUnmount(() => {
   disposables = []
   updaters = []
   coloredMats.length = 0
+  blendableMats.length = 0
+  connMatRef = null
   composer?.dispose()
   renderer?.forceContextLoss()
   renderer?.dispose()
