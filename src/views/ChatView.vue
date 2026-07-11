@@ -10,6 +10,7 @@ import { initials, hue } from '../lib/ui'
 import Navbar from '../components/Navbar.vue'
 import Sidebar from '../components/Sidebar.vue'
 import Header from '../components/Header.vue'
+import OnboardingModal from '../components/OnboardingModal.vue'
 
 const auth = useAuthStore()
 const chat = useChatStore()
@@ -23,6 +24,7 @@ const inputEl = ref<HTMLTextAreaElement | null>(null)
 const activeView = ref<'room' | 'dm' | 'users' | null>(null)
 const sidebarOpen = ref(false)
 const filter = ref<'all' | 'dms' | 'rooms'>('all')
+const showOnboarding = ref(false)
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -315,7 +317,15 @@ onMounted(() => {
   getEcho() // connect the websocket right away so the status indicator is accurate
   chat.fetchRooms()
   dm.fetchConversations()
+  if (!localStorage.getItem('onboarding_seen')) {
+    showOnboarding.value = true
+  }
 })
+
+function closeOnboarding() {
+  localStorage.setItem('onboarding_seen', '1')
+  showOnboarding.value = false
+}
 
 onUnmounted(() => {
   chat.reset()
@@ -588,6 +598,8 @@ onUnmounted(() => {
         </div>
       </template>
     </main>
+
+    <OnboardingModal v-if="showOnboarding" @close="closeOnboarding" />
 
     <!-- Error toasts -->
     <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 items-end">
