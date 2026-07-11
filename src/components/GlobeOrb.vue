@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { theme } from '../lib/theme'
 import * as THREE from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -56,6 +57,14 @@ let sphereGroup: THREE.Group | null = null
 
 let updaters: Updater[] = []
 let disposables: { dispose(): void }[] = []
+
+// Theme-reactive colour state — read each frame by updaters
+type HasColor = { color: THREE.Color }
+const coloredMats: Array<{ mat: HasColor; key: 'accent' | 'bright' }> = []
+let accentHex:   number = CFG.color.accent
+let brightHex:   number = CFG.color.bright
+let glowMult:    number = 1.0
+let bloomTarget: number = CFG.bloom.strength
 
 const mouse  = { x: 0, y: 0 }
 const smooth = { x: 0, y: 0 }
@@ -138,6 +147,21 @@ function additiveLineMat(color: number, opacity: number): THREE.LineBasicMateria
 
 const easeOut3 = (x: number) => 1 - (1 - Math.min(1, x)) ** 3
 
+function applyColors() {
+  const dark = theme.value === 'dark'
+  accentHex   = dark ? CFG.color.accent : 0x7c3aed
+  brightHex   = dark ? CFG.color.bright : 0x8b5cf6
+  glowMult    = dark ? 1.0 : 0.55
+  bloomTarget = dark ? CFG.bloom.strength : CFG.bloom.strength * 0.7
+
+  for (const { mat, key } of coloredMats) {
+    mat.color.set(key === 'accent' ? accentHex : brightHex)
+  }
+  if (bloomPass && enterT >= 1) bloomPass.strength = bloomTarget
+}
+
+watch(theme, applyColors)
+
 function buildSphere(parent: THREE.Group): Updater {
   const { radius, count, pointSize, connectionDist, connectionCap } = CFG.sphere
 
@@ -146,10 +170,12 @@ function buildSphere(parent: THREE.Group): Updater {
   const geo = track(new THREE.BufferGeometry())
   geo.setAttribute('position', new THREE.BufferAttribute(posBuf, 3))
 
-  parent.add(new THREE.Points(geo, track(new THREE.PointsMaterial({
+  const ptsMat = track(new THREE.PointsMaterial({
     color: CFG.color.bright, size: pointSize, transparent: true, opacity: 0.95,
     blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
-  }))))
+  }))
+  coloredMats.push({ mat: ptsMat, key: 'bright' })
+  parent.add(new THREE.Points(geo, ptsMat))
 
   const connMat = track(new THREE.LineBasicMaterial({
     vertexColors: true, transparent: true, opacity: 0.9,
@@ -196,7 +222,7 @@ function buildGlow(parent: THREE.Scene): Updater {
     layers.forEach((l, i) => {
       const b = 1 + Math.sin(t * 0.5 + i * 0.9) * 0.06
       l.sprite.scale.set(l.scale * b, l.scale * b, 1)
-      l.mat.opacity = l.opacity * ef * (0.85 + Math.sin(t * 0.7 + i * 1.3) * 0.15)
+      l.mat.opacity = l.opacity * ef * glowMult * (0.85 + Math.sin(t * 0.7 + i * 1.3) * 0.15)
     })
   }
 }
@@ -204,6 +230,7 @@ function buildGlow(parent: THREE.Scene): Updater {
 function buildRings(parent: THREE.Scene): Updater {
   const items = CFG.rings.map((d, i) => {
     const mat = additiveLineMat(CFG.color.accent, d.opacity)
+    coloredMats.push({ mat, key: 'accent' })
     const pivot = new THREE.Group()
     const line = new THREE.Line(circleGeo(d.radius, 180), mat)
     line.rotation.x = Math.PI / 2          
@@ -228,6 +255,7 @@ function buildGround(parent: THREE.Scene): Updater {
 
   const staticMats = CFG.ground.ringRadii.map((r, i) => {
     const mat = additiveLineMat(CFG.color.accent, 0.22 - i * 0.08)
+    coloredMats.push({ mat, key: 'accent' })
     const line = new THREE.Line(circleGeo(r), mat)
     line.rotation.x = Math.PI / 2
     line.position.y = groundY
@@ -236,6 +264,7 @@ function buildGround(parent: THREE.Scene): Updater {
   })
 
   const pulseMat = additiveLineMat(CFG.color.bright, 0)
+  coloredMats.push({ mat: pulseMat, key: 'bright' })
   const pulse = new THREE.Line(circleGeo(1), pulseMat)
   pulse.rotation.x = Math.PI / 2
   pulse.position.y = groundY
@@ -245,6 +274,7 @@ function buildGround(parent: THREE.Scene): Updater {
     color: CFG.color.bright, transparent: true, opacity: 0.5,
     blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false,
   }))
+  coloredMats.push({ mat: discMat, key: 'bright' })
   const disc = new THREE.Mesh(track(new THREE.CircleGeometry(0.55, 48)), discMat)
   disc.rotation.x = -Math.PI / 2
   disc.position.y = groundY + 0.02
@@ -283,7 +313,7 @@ function animate() {
     enterT = Math.min(1, enterT + dt / CFG.enterDuration)
     const ef = easeOut3(enterT)
     sphereGroup?.scale.setScalar(ef)
-    if (bloomPass) bloomPass.strength = ef * CFG.bloom.strength
+    if (bloomPass) bloomPass.strength = ef * bloomTarget
   }
 
   smooth.x += (mouse.x - smooth.x) * 0.05
@@ -362,6 +392,7 @@ function init() {
   enterT = 0
   sphereGroup.scale.setScalar(0)
   fitCamera(w, h)
+  applyColors()
   animate()
 
   ro = new ResizeObserver(resize)
@@ -386,6 +417,7 @@ onBeforeUnmount(() => {
   for (const d of disposables) d.dispose()
   disposables = []
   updaters = []
+  coloredMats.length = 0
   composer?.dispose()
   renderer?.forceContextLoss()
   renderer?.dispose()
