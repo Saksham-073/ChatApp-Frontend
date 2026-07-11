@@ -55,33 +55,25 @@ function toggle() {
   </button>
 
   <div class="relative z-10 min-h-dvh flex">
-    <!-- ── Left panel: 3D terminal (blended) ────────────────────── -->
     <div class="hidden lg:flex w-[45%] shrink-0 flex-col pt-5 pb-4 px-8 stagger-rise" :style="{ '--i': 0 }">
 
-      <!-- Top status bar -->
+
       <div class="flex items-center justify-between mb-4 shrink-0">
-        <div class="flex items-center gap-2">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.9)] shrink-0" />
-          <span class="text-[9px] font-mono tracking-[0.18em] text-emerald-400/80 uppercase">Neural Link Established</span>
-        </div>
-        <svg viewBox="0 0 90 18" class="w-[68px] h-3.5 text-violet-400/40 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 90 18" class="w-[68px] h-3.5 text-violet-400 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
           <polyline points="0,9 10,9 14,2 19,16 24,3 29,9 38,9 43,5 47,13 51,9 90,9" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" />
         </svg>
       </div>
 
-      <!-- Title -->
       <div class="text-center mb-1 shrink-0">
-        <p class="text-base font-bold tracking-[0.28em] text-white/85 uppercase select-none">Decentralized</p>
+        <p class="text-base font-bold tracking-[0.28em] text-ink uppercase select-none">Decentralized</p>
         <p class="text-base font-bold tracking-[0.28em] text-violet-400 uppercase select-none mt-0.5">Intelligence</p>
       </div>
 
-      <!-- 3D Globe — fills remaining space, canvas transparent so particle bg shows through -->
       <div class="flex-1 min-h-0">
         <GlobeOrb />
       </div>
 
-      <!-- Info card -->
-      <div class="border border-violet-500/15 rounded-xl p-4 flex items-start gap-3.5 bg-black/30 backdrop-blur-sm mb-3 shrink-0">
+      <div class="border border-violet-500 rounded-xl p-4 flex items-start gap-3.5 bg-active backdrop-blur-sm mb-3 shrink-0">
         <svg viewBox="0 0 36 36" class="w-9 h-9 shrink-0 text-violet-400/75 mt-0.5" fill="none" xmlns="http://www.w3.org/2000/svg">
           <polygon points="18,2 32,10 32,26 18,34 4,26 4,10" stroke="currentColor" stroke-width="1.2" />
           <polygon points="18,8 26,12.5 26,23.5 18,28 10,23.5 10,12.5" stroke="currentColor" stroke-width="0.8" opacity="0.55" />
@@ -93,33 +85,14 @@ function toggle() {
           <line x1="4" y1="10" x2="10" y2="12.5" stroke="currentColor" stroke-width="0.7" opacity="0.4" />
         </svg>
         <div>
-          <p class="text-[11px] leading-relaxed text-ink-3">The future of communication is private, intelligent, and decentralized.</p>
-          <p class="text-[11px] text-violet-400 font-semibold mt-1.5">Built on trust. Secured by you.</p>
+          <p class="text-[11px] text-violet-400 font-semibold mt-2.5">Built on trust. Secured by you.</p>
         </div>
-      </div>
-
-      <!-- Bottom status bar -->
-      <div class="flex items-center justify-between shrink-0">
-        <span class="flex items-center gap-1.5 text-[9px] font-mono tracking-widest text-ink-4/80 uppercase">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-          Network: Echo Protocol
-        </span>
-        <div class="flex items-center gap-1.5">
-          <span class="w-5 h-[2px] rounded-full bg-violet-500/70" />
-          <span class="w-5 h-[2px] rounded-full bg-violet-500" />
-          <span class="w-5 h-[2px] rounded-full bg-violet-500/30" />
-        </div>
-        <span class="flex items-center gap-1.5 text-[9px] font-mono tracking-widest text-ink-4/80 uppercase">
-          Status: Synchronized
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-        </span>
       </div>
     </div>
 
-    <!-- ── Right panel: login form ────────────────────────────────── -->
+
     <div class="flex-1 flex items-center justify-center px-6 py-10">
       <div class="w-full max-w-sm">
-        <!-- Mobile logo (hidden on lg+) -->
         <div class="flex flex-col items-center gap-4 mb-8 lg:hidden">
           <div
             class="w-14 h-14 rounded-2xl bg-linear-to-br from-violet-500 to-violet-800 flex items-center justify-center shadow-[0_0_40px_rgba(139,92,246,0.6)] stagger-rise"
@@ -133,7 +106,6 @@ function toggle() {
           </div>
         </div>
 
-        <!-- Desktop heading -->
         <div class="hidden lg:block mb-6 stagger-rise" :style="{ '--i': 1 }">
           <h2 class="text-ink text-3xl font-bold tracking-tight">
             {{ mode === 'login' ? 'Echo Terminal' : 'Register' }}
@@ -143,7 +115,6 @@ function toggle() {
           </p>
         </div>
 
-        <!-- Glass form card -->
         <div
           v-glow
           class="glass rounded-3xl p-8 shadow-[0_24px_80px_rgba(139,92,246,0.18)] stagger-rise glow-border"
@@ -204,7 +175,6 @@ function toggle() {
           </form>
         </div>
 
-        <!-- Mode toggle -->
         <p class="text-ink-3 text-sm text-center mt-6 stagger-rise" :style="{ '--i': 3 }">
           {{ mode === 'login' ? 'Need network access?' : 'Already have an account?' }}
           <button
