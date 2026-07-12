@@ -4,7 +4,13 @@ import { api, type Paginated } from '../lib/api'
 import { getEcho } from '../lib/echo'
 import { useAuthStore } from './auth'
 
-export interface DMUser { id: number; name: string; email?: string }
+export interface DMUser {
+  id: number
+  name: string
+  email?: string
+  friendship_status?: 'none' | 'pending_sent' | 'pending_received' | 'friends'
+  friendship_id?: number | null
+}
 export interface LastMessage { id: number; message: string; sender_id: number; created_at: string; deleted_at?: string | null }
 export interface Conversation {
   id: number
