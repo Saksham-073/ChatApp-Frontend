@@ -2,17 +2,19 @@
 import { onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useDmStore, type DMUser } from '../stores/dm'
+import { useFriendsStore } from '../stores/friends'
 import { initials, hue } from '../lib/ui'
 
 const emit = defineEmits<{ close: [] }>()
 const dm = useDmStore()
+const friends = useFriendsStore()
 
 onMounted(async () => {
   if (!dm.users.length) await dm.fetchUsers()
 })
 
 async function selectUser(user: DMUser) {
-  await dm.openConversation(user.id)
+  await friends.sendRequest(user.id)
   emit('close')
 }
 </script>
@@ -29,7 +31,7 @@ async function selectUser(user: DMUser) {
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-lg font-semibold text-ink">Welcome! 👋</h2>
-          <p class="text-sm text-ink-4 mt-0.5">Start a conversation with someone</p>
+          <p class="text-sm text-ink-4 mt-0.5">Send a friend request to get started</p>
         </div>
         <button
           class="w-8 h-8 rounded-lg flex items-center justify-center text-ink-4 hover:text-ink-2 hover:bg-hovered transition-all cursor-pointer"
