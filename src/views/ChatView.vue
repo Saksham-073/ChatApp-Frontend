@@ -111,6 +111,9 @@ const isLoadingMessages = computed(() =>
   activeView.value === 'room' ? chat.loadingMessages : dm.loadingMessages,
 )
 const isSending = computed(() => (activeView.value === 'room' ? chat.sending : dm.sending))
+const canMessageCurrentConv = computed(
+  () => activeView.value !== 'dm' || dm.currentConv?.other_user.friendship_status === 'friends',
+)
 
 // ── Smart scrolling ──────────────────────────────────────────────────
 
@@ -629,6 +632,7 @@ onUnmounted(() => {
             <button class="hover:text-ink cursor-pointer" @click="cancelEdit">Cancel (Esc)</button>
           </div>
           <div
+            v-if="canMessageCurrentConv"
             class="glass rounded-2xl flex items-end gap-2 p-2 focus-within:border-violet-500/40 transition-colors"
           >
             <textarea
@@ -657,6 +661,17 @@ onUnmounted(() => {
                 class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
               />
               <Icon v-else icon="lucide:send-horizontal" class="w-[18px] h-[18px]" />
+            </button>
+          </div>
+          <div v-else class="glass rounded-2xl flex items-center justify-between gap-3 p-4">
+            <span class="text-ink-3 text-sm"
+              >You're not friends yet — add them to start messaging.</span
+            >
+            <button
+              class="text-xs font-semibold rounded-lg px-3.5 py-2 bg-linear-to-r from-violet-500 to-violet-700 text-white shrink-0 cursor-pointer active:scale-95 transition-transform ease-(--ease-spring)"
+              @click="dm.currentConv && friends.sendRequest(dm.currentConv.other_user.id)"
+            >
+              Add Friend
             </button>
           </div>
         </div>
