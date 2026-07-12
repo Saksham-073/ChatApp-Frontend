@@ -12,6 +12,7 @@ import Navbar from '../components/Navbar.vue'
 import Sidebar from '../components/Sidebar.vue'
 import Header from '../components/Header.vue'
 import OnboardingModal from '../components/OnboardingModal.vue'
+import FriendsPanel from '../components/FriendsPanel.vue'
 
 const auth = useAuthStore()
 const chat = useChatStore()
@@ -23,7 +24,7 @@ const messageInput = ref('')
 const messagesEl = ref<HTMLElement | null>(null)
 const inputEl = ref<HTMLTextAreaElement | null>(null)
 
-const activeView = ref<'room' | 'dm' | 'users' | null>(null)
+const activeView = ref<'room' | 'dm' | 'users' | 'friends' | null>(null)
 const sidebarOpen = ref(false)
 const filter = ref<'all' | 'dms' | 'rooms'>('all')
 const showOnboarding = ref(false)
@@ -276,6 +277,11 @@ function showUsers() {
   dm.fetchUsers()
 }
 
+function showFriends() {
+  activeView.value = 'friends'
+  sidebarOpen.value = false
+}
+
 function friendButtonLabel(user: DMUser) {
   switch (user.friendship_status) {
     case 'pending_sent':
@@ -340,6 +346,15 @@ watch(
     }
   },
 )
+watch(
+  () => friends.error,
+  (e) => {
+    if (e) {
+      toast(e)
+      friends.error = ''
+    }
+  },
+)
 
 // ── Lifecycle ────────────────────────────────────────────────────────
 
@@ -347,6 +362,9 @@ onMounted(() => {
   getEcho() // connect the websocket right away so the status indicator is accurate
   chat.fetchRooms()
   dm.fetchConversations()
+  friends.fetchFriends()
+  friends.fetchRequests()
+  friends.subscribeSelf()
   if (!localStorage.getItem('onboarding_seen')) {
     showOnboarding.value = true
   }
@@ -360,6 +378,7 @@ function closeOnboarding() {
 onUnmounted(() => {
   chat.reset()
   dm.reset()
+  friends.reset()
 })
 </script>
 
@@ -374,6 +393,7 @@ onUnmounted(() => {
       @select-room="selectRoom"
       @select-conv="selectConv"
       @show-users="showUsers"
+      @show-friends="showFriends"
       @logout="logout"
       @error="toast"
     />
@@ -441,6 +461,11 @@ onUnmounted(() => {
             No other users found
           </p>
         </div>
+      </template>
+
+      <!-- Friends -->
+      <template v-else-if="activeView === 'friends'">
+        <FriendsPanel />
       </template>
 
       <!-- Chat area -->

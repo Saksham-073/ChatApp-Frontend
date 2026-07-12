@@ -4,11 +4,12 @@ import { Icon } from '@iconify/vue'
 import { useAuthStore } from '../stores/auth'
 import { useChatStore, type Room } from '../stores/chat'
 import { useDmStore, type Conversation } from '../stores/dm'
+import { useFriendsStore } from '../stores/friends'
 import { theme, toggleTheme } from '../lib/theme'
 import { initials, hue, rel, connStatus } from '../lib/ui'
 
 const props = defineProps<{
-  activeView: 'room' | 'dm' | 'users' | null
+  activeView: 'room' | 'dm' | 'users' | 'friends' | null
 }>()
 
 const open = defineModel<boolean>('open', { required: true })
@@ -18,6 +19,7 @@ const emit = defineEmits<{
   'select-room': [room: Room]
   'select-conv': [conv: Conversation]
   'show-users': []
+  'show-friends': []
   logout: []
   error: [message: string]
 }>()
@@ -25,6 +27,7 @@ const emit = defineEmits<{
 const auth = useAuthStore()
 const chat = useChatStore()
 const dm = useDmStore()
+const friends = useFriendsStore()
 
 // ── Search & filtering ───────────────────────────────────────────────
 
@@ -102,6 +105,18 @@ function isActiveConv(conv: Conversation) {
             @click="emit('show-users')"
           >
             <Icon icon="lucide:user-plus" class="w-4 h-4" />
+          </button>
+          <button
+            class="relative w-8 h-8 rounded-lg flex items-center justify-center text-ink-4 hover:text-violet-500 dark:hover:text-violet-400 hover:bg-hovered transition-all cursor-pointer"
+            title="Friends"
+            @click="emit('show-friends')"
+          >
+            <Icon icon="lucide:users" class="w-4 h-4" />
+            <span
+              v-if="friends.incoming.length"
+              class="absolute -top-1 -right-1 bg-linear-to-r from-violet-500 to-violet-700 text-white text-[9px] font-bold rounded-full min-w-[15px] h-[15px] px-1 flex items-center justify-center"
+              >{{ friends.incoming.length }}</span
+            >
           </button>
           <button
             class="w-8 h-8 rounded-lg flex items-center justify-center text-ink-4 hover:text-violet-500 dark:hover:text-violet-400 hover:bg-hovered transition-all cursor-pointer"
@@ -199,11 +214,11 @@ function isActiveConv(conv: Conversation) {
     <div class="flex-1 overflow-y-auto px-3 pb-4">
       <!-- Rooms -->
       <template v-if="filteredRooms.length || filter === 'rooms'">
-        <p class="text-ink-4 text-[10px] font-semibold px-3 mb-1.5 mt-1">
-          Rooms
-        </p>
+        <p class="text-ink-4 text-[10px] font-semibold px-3 mb-1.5 mt-1">Rooms</p>
         <div v-if="chat.loadingRooms" class="flex justify-center py-4">
-          <span class="w-4 h-4 border-2 border-edge border-t-violet-500 rounded-full animate-spin" />
+          <span
+            class="w-4 h-4 border-2 border-edge border-t-violet-500 rounded-full animate-spin"
+          />
         </div>
         <ul v-else class="flex flex-col gap-0.5 mb-3">
           <li
@@ -228,7 +243,9 @@ function isActiveConv(conv: Conversation) {
               "
               >#</span
             >
-            <span :class="isActiveRoom(room) ? 'text-violet-600 dark:text-violet-300' : 'text-ink-2'">
+            <span
+              :class="isActiveRoom(room) ? 'text-violet-600 dark:text-violet-300' : 'text-ink-2'"
+            >
               {{ room.name }}
             </span>
           </li>
@@ -240,9 +257,7 @@ function isActiveConv(conv: Conversation) {
 
       <!-- DMs -->
       <template v-if="filteredConvs.length || filter !== 'rooms'">
-        <p class="text-ink-4 text-[10px] font-semibold px-3 mb-1.5 mt-1">
-          Direct
-        </p>
+        <p class="text-ink-4 text-[10px] font-semibold px-3 mb-1.5 mt-1">Direct</p>
         <ul class="flex flex-col gap-0.5">
           <li
             v-for="(conv, idx) in filteredConvs"
