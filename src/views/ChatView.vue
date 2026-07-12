@@ -4,7 +4,8 @@ import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useChatStore, type Room } from '../stores/chat'
-import { useDmStore, type Conversation } from '../stores/dm'
+import { useDmStore, type Conversation, type DMUser } from '../stores/dm'
+import { useFriendsStore } from '../stores/friends'
 import { getEcho } from '../lib/echo'
 import { initials, hue } from '../lib/ui'
 import Navbar from '../components/Navbar.vue'
@@ -15,6 +16,7 @@ import OnboardingModal from '../components/OnboardingModal.vue'
 const auth = useAuthStore()
 const chat = useChatStore()
 const dm = useDmStore()
+const friends = useFriendsStore()
 const router = useRouter()
 
 const messageInput = ref('')
@@ -274,6 +276,34 @@ function showUsers() {
   dm.fetchUsers()
 }
 
+function friendButtonLabel(user: DMUser) {
+  switch (user.friendship_status) {
+    case 'pending_sent':
+      return 'Pending'
+    case 'pending_received':
+      return 'Accept'
+    case 'friends':
+      return 'Message'
+    default:
+      return 'Add Friend'
+  }
+}
+
+async function handleUserRowClick(user: DMUser) {
+  if (user.friendship_status === 'friends') {
+    await openNewDm(user.id)
+    return
+  }
+  if (user.friendship_status === 'pending_received' && user.friendship_id) {
+    await friends.acceptRequest(user.friendship_id)
+  } else if (user.friendship_status === 'pending_sent' && user.friendship_id) {
+    await friends.cancelOrDecline(user.friendship_id)
+  } else if (!user.friendship_status || user.friendship_status === 'none') {
+    await friends.sendRequest(user.id)
+  }
+  await dm.fetchUsers()
+}
+
 async function logout() {
   chat.reset()
   dm.reset()
@@ -380,7 +410,7 @@ onUnmounted(() => {
               v-for="user in dm.users"
               :key="user.id"
               class="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl glass hover:bg-hovered cursor-pointer transition-all msg-rise"
-              @click="openNewDm(user.id)"
+              @click="handleUserRowClick(user)"
             >
               <div
                 class="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-sm font-bold shrink-0"
@@ -392,7 +422,16 @@ onUnmounted(() => {
                 <p class="text-ink text-sm font-semibold truncate">{{ user.name }}</p>
                 <p class="text-ink-3 text-xs truncate">{{ user.email }}</p>
               </div>
-              <Icon icon="lucide:chevron-right" class="w-4 h-4 text-ink-4 ml-auto shrink-0" />
+              <span
+                class="ml-auto shrink-0 text-xs font-semibold"
+                :class="
+                  user.friendship_status === 'friends'
+                    ? 'text-violet-500 dark:text-violet-400'
+                    : 'text-ink-3'
+                "
+              >
+                {{ friendButtonLabel(user) }}
+              </span>
             </li>
           </ul>
           <p
