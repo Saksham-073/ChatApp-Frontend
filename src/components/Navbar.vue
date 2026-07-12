@@ -6,7 +6,7 @@ import { initials, hue, connStatus } from '../lib/ui'
 
 const filter = defineModel<'all' | 'dms' | 'rooms'>('filter', { required: true })
 
-const emit = defineEmits<{ logout: [] }>()
+const emit = defineEmits<{ logout: []; 'show-settings': [] }>()
 
 const auth = useAuthStore()
 </script>
@@ -71,13 +71,14 @@ const auth = useAuthStore()
     </div>
 
     <!-- User avatar + logout -->
-    <div
-      class="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-xs font-bold"
+    <button
+      class="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-xs font-bold transition-all active:scale-90 ease-(--ease-spring) cursor-pointer"
       :style="{ filter: auth.user ? hue(auth.user.id) : undefined }"
-      :title="auth.user?.name"
+      :title="`Settings — ${auth.user?.name ?? ''}`"
+      @click="emit('show-settings')"
     >
       {{ auth.user ? initials(auth.user.name) : '?' }}
-    </div>
+    </button>
     <button
       class="w-10 h-10 rounded-xl flex items-center justify-center text-ink-4 hover:text-rose-500 hover:bg-hovered transition-all active:scale-90 ease-(--ease-spring) cursor-pointer"
       title="Logout"

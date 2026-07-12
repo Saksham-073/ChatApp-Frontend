@@ -5,7 +5,7 @@ import { useDmStore } from '../stores/dm'
 import { initials, hue, connStatus } from '../lib/ui'
 
 defineProps<{
-  activeView: 'room' | 'dm' | 'users' | 'friends' | null
+  activeView: 'room' | 'dm' | 'users' | 'friends' | 'settings' | null
 }>()
 
 const open = defineModel<boolean>('open', { required: true })
@@ -49,6 +49,10 @@ const dm = useDmStore()
 
     <template v-else-if="activeView === 'friends'">
       <span class="text-ink text-sm font-semibold">Friends</span>
+    </template>
+
+    <template v-else-if="activeView === 'settings'">
+      <span class="text-ink text-sm font-semibold">Settings</span>
     </template>
 
     <template v-else>

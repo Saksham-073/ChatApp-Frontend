@@ -9,7 +9,7 @@ import { theme, toggleTheme } from '../lib/theme'
 import { initials, hue, rel, connStatus } from '../lib/ui'
 
 const props = defineProps<{
-  activeView: 'room' | 'dm' | 'users' | 'friends' | null
+  activeView: 'room' | 'dm' | 'users' | 'friends' | 'settings' | null
 }>()
 
 const open = defineModel<boolean>('open', { required: true })
@@ -20,6 +20,7 @@ const emit = defineEmits<{
   'select-conv': [conv: Conversation]
   'show-users': []
   'show-friends': []
+  'show-settings': []
   logout: []
   error: [message: string]
 }>()
@@ -136,13 +137,19 @@ function isActiveConv(conv: Conversation) {
 
       <!-- Mobile user row -->
       <div class="flex md:hidden items-center gap-2 mb-3 mt-2">
-        <div
-          class="w-7 h-7 rounded-lg bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-[10px] font-bold"
-          :style="{ filter: auth.user ? hue(auth.user.id) : undefined }"
+        <button
+          class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer active:scale-97 transition-transform ease-(--ease-spring)"
+          title="Settings"
+          @click="emit('show-settings')"
         >
-          {{ auth.user ? initials(auth.user.name) : '?' }}
-        </div>
-        <span class="text-ink-2 text-sm font-medium flex-1 truncate">{{ auth.user?.name }}</span>
+          <div
+            class="w-7 h-7 rounded-lg bg-linear-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+            :style="{ filter: auth.user ? hue(auth.user.id) : undefined }"
+          >
+            {{ auth.user ? initials(auth.user.name) : '?' }}
+          </div>
+          <span class="text-ink-2 text-sm font-medium truncate">{{ auth.user?.name }}</span>
+        </button>
         <span class="text-xs flex items-center gap-1.5" :class="connStatus.text">
           <span class="w-1.5 h-1.5 rounded-full" :class="connStatus.dot" />
           {{ connStatus.label }}
