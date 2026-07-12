@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { api } from '../lib/api'
 import { getEcho } from '../lib/echo'
 import { useAuthStore } from './auth'
+import { useDmStore } from './dm'
 import type { DMUser } from './dm'
 
 export interface FriendRequest {
@@ -22,6 +23,13 @@ export const useFriendsStore = defineStore('friends', () => {
 
   let selfSubscribed = false
 
+  function syncDmFriendshipStatus(userId: number, status: 'friends' | 'none') {
+    const dm = useDmStore()
+    if (dm.currentConv?.other_user.id === userId) {
+      dm.currentConv.other_user.friendship_status = status
+    }
+  }
+
   function subscribeSelf() {
     const auth = useAuthStore()
     if (selfSubscribed || !auth.user) return
@@ -35,6 +43,7 @@ export const useFriendsStore = defineStore('friends', () => {
       .listen('FriendRequestAccepted', (e: FriendRequest) => {
         outgoing.value = outgoing.value.filter((r) => r.id !== e.id)
         if (!friends.value.find((f) => f.id === e.recipient.id)) friends.value.push(e.recipient)
+        syncDmFriendshipStatus(e.recipient.id, 'friends')
       })
       .listen('FriendRequestCancelled', (e: { id: number }) => {
         incoming.value = incoming.value.filter((r) => r.id !== e.id)
@@ -42,6 +51,7 @@ export const useFriendsStore = defineStore('friends', () => {
       })
       .listen('FriendRemoved', (e: { user_id: number }) => {
         friends.value = friends.value.filter((f) => f.id !== e.user_id)
+        syncDmFriendshipStatus(e.user_id, 'none')
       })
   }
 
@@ -81,6 +91,7 @@ export const useFriendsStore = defineStore('friends', () => {
         incoming.value = incoming.value.filter((r) => r.id !== req.id)
         outgoing.value = outgoing.value.filter((r) => r.id !== req.id)
         if (!friends.value.find((f) => f.id === friend.id)) friends.value.push(friend)
+        syncDmFriendshipStatus(friend.id, 'friends')
       } else if (!outgoing.value.find((r) => r.id === req.id)) {
         outgoing.value.push(req)
       }
@@ -95,6 +106,7 @@ export const useFriendsStore = defineStore('friends', () => {
       const req = await api.post<FriendRequest>(`/friend-requests/${id}/accept`, {})
       incoming.value = incoming.value.filter((r) => r.id !== id)
       if (!friends.value.find((f) => f.id === req.sender.id)) friends.value.push(req.sender)
+      syncDmFriendshipStatus(req.sender.id, 'friends')
     } catch (e) {
       error.value = (e as Error).message
     }
@@ -116,6 +128,7 @@ export const useFriendsStore = defineStore('friends', () => {
     try {
       await api.del(`/friends/${userId}`)
       friends.value = friends.value.filter((f) => f.id !== userId)
+      syncDmFriendshipStatus(userId, 'none')
     } catch (e) {
       error.value = (e as Error).message
     }
