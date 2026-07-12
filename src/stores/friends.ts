@@ -23,11 +23,22 @@ export const useFriendsStore = defineStore('friends', () => {
 
   let selfSubscribed = false
 
-  function syncDmFriendshipStatus(userId: number, status: 'friends' | 'none') {
+  function syncDmFriendshipStatus(
+    userId: number,
+    status: 'none' | 'pending_sent' | 'pending_received' | 'friends',
+    friendshipId: number | null = null,
+  ) {
     const dm = useDmStore()
     if (dm.currentConv?.other_user.id === userId) {
       dm.currentConv.other_user.friendship_status = status
+      dm.currentConv.other_user.friendship_id = friendshipId
     }
+  }
+
+  /** The user on the other side of a request, relative to the signed-in user. */
+  function otherPartyOf(req: FriendRequest) {
+    const auth = useAuthStore()
+    return req.sender.id === auth.user?.id ? req.recipient : req.sender
   }
 
   function subscribeSelf() {
@@ -39,6 +50,7 @@ export const useFriendsStore = defineStore('friends', () => {
       .private(`user.${auth.user.id}`)
       .listen('FriendRequestSent', (e: FriendRequest) => {
         if (!incoming.value.find((r) => r.id === e.id)) incoming.value.unshift(e)
+        syncDmFriendshipStatus(e.sender.id, 'pending_received', e.id)
       })
       .listen('FriendRequestAccepted', (e: FriendRequest) => {
         outgoing.value = outgoing.value.filter((r) => r.id !== e.id)
@@ -46,8 +58,10 @@ export const useFriendsStore = defineStore('friends', () => {
         syncDmFriendshipStatus(e.recipient.id, 'friends')
       })
       .listen('FriendRequestCancelled', (e: { id: number }) => {
+        const req = incoming.value.find((r) => r.id === e.id) ?? outgoing.value.find((r) => r.id === e.id)
         incoming.value = incoming.value.filter((r) => r.id !== e.id)
         outgoing.value = outgoing.value.filter((r) => r.id !== e.id)
+        if (req) syncDmFriendshipStatus(otherPartyOf(req).id, 'none')
       })
       .listen('FriendRemoved', (e: { user_id: number }) => {
         friends.value = friends.value.filter((f) => f.id !== e.user_id)
@@ -92,8 +106,9 @@ export const useFriendsStore = defineStore('friends', () => {
         outgoing.value = outgoing.value.filter((r) => r.id !== req.id)
         if (!friends.value.find((f) => f.id === friend.id)) friends.value.push(friend)
         syncDmFriendshipStatus(friend.id, 'friends')
-      } else if (!outgoing.value.find((r) => r.id === req.id)) {
-        outgoing.value.push(req)
+      } else {
+        if (!outgoing.value.find((r) => r.id === req.id)) outgoing.value.push(req)
+        syncDmFriendshipStatus(userId, 'pending_sent', req.id)
       }
     } catch (e) {
       error.value = (e as Error).message
@@ -115,9 +130,11 @@ export const useFriendsStore = defineStore('friends', () => {
   async function cancelOrDecline(id: number) {
     error.value = ''
     try {
+      const req = incoming.value.find((r) => r.id === id) ?? outgoing.value.find((r) => r.id === id)
       await api.del(`/friend-requests/${id}`)
       incoming.value = incoming.value.filter((r) => r.id !== id)
       outgoing.value = outgoing.value.filter((r) => r.id !== id)
+      if (req) syncDmFriendshipStatus(otherPartyOf(req).id, 'none')
     } catch (e) {
       error.value = (e as Error).message
     }

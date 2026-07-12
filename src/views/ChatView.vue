@@ -13,6 +13,7 @@ import Sidebar from '../components/Sidebar.vue'
 import Header from '../components/Header.vue'
 import OnboardingModal from '../components/OnboardingModal.vue'
 import FriendsPanel from '../components/FriendsPanel.vue'
+import SettingsPanel from '../components/SettingsPanel.vue'
 
 const auth = useAuthStore()
 const chat = useChatStore()
@@ -24,7 +25,7 @@ const messageInput = ref('')
 const messagesEl = ref<HTMLElement | null>(null)
 const inputEl = ref<HTMLTextAreaElement | null>(null)
 
-const activeView = ref<'room' | 'dm' | 'users' | 'friends' | null>(null)
+const activeView = ref<'room' | 'dm' | 'users' | 'friends' | 'settings' | null>(null)
 const sidebarOpen = ref(false)
 const filter = ref<'all' | 'dms' | 'rooms'>('all')
 const showOnboarding = ref(false)
@@ -296,6 +297,11 @@ function showFriends() {
   sidebarOpen.value = false
 }
 
+function showSettings() {
+  activeView.value = 'settings'
+  sidebarOpen.value = false
+}
+
 function friendButtonLabel(user: DMUser) {
   switch (user.friendship_status) {
     case 'pending_sent':
@@ -398,7 +404,7 @@ onUnmounted(() => {
 
 <template>
   <div class="relative z-10 h-dvh flex overflow-hidden text-ink-2">
-    <Navbar v-model:filter="filter" @logout="logout" />
+    <Navbar v-model:filter="filter" @logout="logout" @show-settings="showSettings" />
 
     <Sidebar
       v-model:open="sidebarOpen"
@@ -408,6 +414,7 @@ onUnmounted(() => {
       @select-conv="selectConv"
       @show-users="showUsers"
       @show-friends="showFriends"
+      @show-settings="showSettings"
       @logout="logout"
       @error="toast"
     />
@@ -480,6 +487,11 @@ onUnmounted(() => {
       <!-- Friends -->
       <template v-else-if="activeView === 'friends'">
         <FriendsPanel />
+      </template>
+
+      <!-- Settings -->
+      <template v-else-if="activeView === 'settings'">
+        <SettingsPanel />
       </template>
 
       <!-- Chat area -->
