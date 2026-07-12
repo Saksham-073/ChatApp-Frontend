@@ -114,6 +114,17 @@ const isSending = computed(() => (activeView.value === 'room' ? chat.sending : d
 const canMessageCurrentConv = computed(
   () => activeView.value !== 'dm' || dm.currentConv?.other_user.friendship_status === 'friends',
 )
+const nonFriendComposerAction = computed(() => {
+  const status = dm.currentConv?.other_user.friendship_status
+  if (status === 'pending_sent') return 'sent'
+  if (status === 'pending_received') return 'received'
+  return 'none'
+})
+
+function acceptCurrentConvRequest() {
+  const id = dm.currentConv?.other_user.friendship_id
+  if (id) friends.acceptRequest(id)
+}
 
 // ── Smart scrolling ──────────────────────────────────────────────────
 
@@ -668,6 +679,21 @@ onUnmounted(() => {
               >You're not friends yet — add them to start messaging.</span
             >
             <button
+              v-if="nonFriendComposerAction === 'received'"
+              class="text-xs font-semibold rounded-lg px-3.5 py-2 bg-linear-to-r from-violet-500 to-violet-700 text-white shrink-0 cursor-pointer active:scale-95 transition-transform ease-(--ease-spring)"
+              @click="acceptCurrentConvRequest"
+            >
+              Accept Request
+            </button>
+            <button
+              v-else-if="nonFriendComposerAction === 'sent'"
+              disabled
+              class="text-xs font-semibold rounded-lg px-3.5 py-2 bg-field text-ink-4 shrink-0 cursor-not-allowed"
+            >
+              Request Sent
+            </button>
+            <button
+              v-else
               class="text-xs font-semibold rounded-lg px-3.5 py-2 bg-linear-to-r from-violet-500 to-violet-700 text-white shrink-0 cursor-pointer active:scale-95 transition-transform ease-(--ease-spring)"
               @click="dm.currentConv && friends.sendRequest(dm.currentConv.other_user.id)"
             >
