@@ -46,3 +46,6 @@ docs/superpowers/
 .claude/
 graphify-out
 .worktrees/
+.claude-flow
+CLAUDE.md
+.mcp.json

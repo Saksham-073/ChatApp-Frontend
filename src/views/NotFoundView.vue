@@ -24,7 +24,7 @@ const router = useRouter()
       </div>
 
       <h1 class="text-ink text-5xl font-bold tracking-tight">404</h1>
-      <p class="text-ink-3 text-sm mt-3 tracking-[0.1em]">Signal lost. This route does not exist on the network.</p>
+      <p class="text-ink-3 text-sm mt-3 tracking-widest">Signal lost. This route does not exist on the network.</p>
 
       <div v-glow class="glass rounded-3xl p-6 mt-8 shadow-[0_24px_80px_rgba(139,92,246,0.18)] glow-border">
         <button
