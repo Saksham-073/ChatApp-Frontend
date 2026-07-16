@@ -2,6 +2,9 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { api, type Paginated } from '../lib/api'
 import { getEcho } from '../lib/echo'
+import { throttle } from '../lib/throttle'
+import { createTypingIndicator } from '../composables/useTypingIndicator'
+import { useAuthStore } from './auth'
 
 export interface Room { id: number; name: string }
 export interface ChatMessage {
@@ -23,6 +26,8 @@ export const useChatStore = defineStore('chat', () => {
   const loadingMessages = ref(false)
   const sending = ref(false)
   const error = ref('')
+
+  const typing = createTypingIndicator()
 
   async function fetchRooms() {
     loadingRooms.value = true
@@ -72,6 +77,11 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  const notifyTyping = throttle(() => {
+    if (!currentRoom.value) return
+    api.post(`/chat/room/${currentRoom.value.id}/typing`, {}).catch(() => {})
+  }, 2000)
+
   function applyUpdate(updated: Partial<ChatMessage> & { id: number }) {
     const idx = messages.value.findIndex((m) => m.id === updated.id)
     if (idx !== -1) {
@@ -120,12 +130,18 @@ export const useChatStore = defineStore('chat', () => {
     channel.listen('MessageDeleted', (e: { id: number; deleted_at: string }) =>
       applyUpdate({ id: e.id, message: '', deleted_at: e.deleted_at }),
     )
+    channel.listen('UserTyping', (e: { user_id: number; user: { id: number; name: string } }) => {
+      const auth = useAuthStore()
+      if (e.user_id === auth.user?.id) return
+      typing.handleEvent(e.user_id, e.user.name)
+    })
   }
 
   function leaveCurrentChannel() {
     if (currentRoom.value) {
       getEcho().leaveChannel(`chat-room.${currentRoom.value.id}`)
     }
+    typing.clear()
   }
 
   function reset() {
@@ -141,5 +157,6 @@ export const useChatStore = defineStore('chat', () => {
     loadingRooms, loadingMessages, sending, error,
     fetchRooms, selectRoom, sendMessage, createRoom, reset,
     editMessage, deleteMessage,
+    notifyTyping, typingLabel: typing.label,
   }
 })
