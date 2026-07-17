@@ -3,6 +3,8 @@ import { defineStore } from 'pinia'
 import { api, type Paginated } from '../lib/api'
 import { getEcho } from '../lib/echo'
 import { useAuthStore } from './auth'
+import { throttle } from '../lib/throttle'
+import { createTypingIndicator } from '../composables/useTypingIndicator'
 
 export interface DMUser {
   id: number
@@ -43,6 +45,8 @@ export const useDmStore = defineStore('dm', () => {
   // Conversation ids we already have a live websocket subscription for
   const subscribed = new Set<number>()
   let selfSubscribed = false
+
+  const typing = createTypingIndicator()
 
   /**
    * Listen on our personal channel so the FIRST message of a brand-new
@@ -103,6 +107,7 @@ export const useDmStore = defineStore('dm', () => {
   async function selectConversation(conv: Conversation) {
     currentConv.value = conv
     messages.value = []
+    typing.clear()
     await fetchMessages()
     markRead(conv)
   }
@@ -149,6 +154,11 @@ export const useDmStore = defineStore('dm', () => {
     }
   }
 
+  const notifyTyping = throttle(() => {
+    if (!currentConv.value) return
+    api.post(`/conversations/${currentConv.value.id}/typing`, {}).catch(() => {})
+  }, 2000)
+
   function subscribe(convId: number) {
     if (subscribed.has(convId)) return
     subscribed.add(convId)
@@ -172,6 +182,11 @@ export const useDmStore = defineStore('dm', () => {
     }).listen('DirectMessageDeleted', (e: { id: number; conversation_id: number; deleted_at: string }) => {
       applyUpdate({ id: e.id, message: '', deleted_at: e.deleted_at })
       refreshPreview({ ...e, message: '' })
+    }).listen('DirectUserTyping', (e: { conversation_id: number; user_id: number; user: { id: number; name: string } }) => {
+      if (currentConv.value?.id !== e.conversation_id) return
+      const auth = useAuthStore()
+      if (e.user_id === auth.user?.id) return
+      typing.handleEvent(e.user_id, e.user.name)
     })
   }
 
@@ -252,6 +267,7 @@ export const useDmStore = defineStore('dm', () => {
     const auth = useAuthStore()
     subscribed.forEach(id => getEcho().leaveChannel(`private-conversation.${id}`))
     subscribed.clear()
+    typing.clear()
     if (selfSubscribed && auth.user) {
       getEcho().leaveChannel(`private-user.${auth.user.id}`)
     }
@@ -268,5 +284,6 @@ export const useDmStore = defineStore('dm', () => {
     loadingUsers, loadingMessages, sending, error,
     fetchUsers, fetchConversations, openConversation, selectConversation, sendMessage, markRead, reset,
     editMessage, deleteMessage,
+    notifyTyping, typingLabel: typing.label,
   }
 })
