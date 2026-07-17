@@ -14,6 +14,7 @@ import Header from '../components/Header.vue'
 import OnboardingModal from '../components/OnboardingModal.vue'
 import FriendsPanel from '../components/FriendsPanel.vue'
 import SettingsPanel from '../components/SettingsPanel.vue'
+import TypingIndicator from '../components/TypingIndicator.vue'
 
 const auth = useAuthStore()
 const chat = useChatStore()
@@ -29,6 +30,18 @@ const activeView = ref<'room' | 'dm' | 'users' | 'friends' | 'settings' | null>(
 const sidebarOpen = ref(false)
 const filter = ref<'all' | 'dms' | 'rooms'>('all')
 const showOnboarding = ref(false)
+
+const activeTypingLabel = computed(() => {
+  if (activeView.value === 'room') return chat.typingLabel
+  if (activeView.value === 'dm') return dm.typingLabel
+  return ''
+})
+
+function onComposerInput() {
+  autoGrow()
+  if (activeView.value === 'room') chat.notifyTyping()
+  else if (activeView.value === 'dm') dm.notifyTyping()
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -642,6 +655,8 @@ onUnmounted(() => {
           </button>
         </div>
 
+        <TypingIndicator :label="activeTypingLabel" />
+
         <!-- Composer -->
         <div class="px-4 md:px-6 pb-5 pt-2 shrink-0">
           <div
@@ -671,7 +686,7 @@ onUnmounted(() => {
               "
               maxlength="2000"
               class="flex-1 resize-none bg-transparent px-3 py-2 text-ink text-sm outline-none placeholder-ink-4 field-sizing-content max-h-[120px]"
-              @input="autoGrow"
+              @input="onComposerInput"
               @keydown="onKeydown"
             />
             <button
