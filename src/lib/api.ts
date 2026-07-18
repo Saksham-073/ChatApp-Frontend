@@ -8,6 +8,16 @@ export interface Paginated<T> {
   meta?: { next_cursor: string | null; prev_cursor: string | null; per_page: number }
 }
 
+export class ApiError extends Error {
+  status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('auth_token')
   const sid = socketId()
@@ -25,12 +35,12 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
 
   if (res.status === 401) {
     localStorage.removeItem('auth_token')
-    throw new Error('Unauthenticated.')
+    throw new ApiError('Unauthenticated.', 401)
   }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({})) as { message?: string }
-    throw new Error(body.message ?? `HTTP ${res.status}`)
+    throw new ApiError(body.message ?? `HTTP ${res.status}`, res.status)
   }
 
   if (res.status === 204) return undefined as T
