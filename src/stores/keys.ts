@@ -1,6 +1,6 @@
 import { ref, reactive } from 'vue'
 import { defineStore } from 'pinia'
-import { api } from '../lib/api'
+import { api, ApiError } from '../lib/api'
 import { useAuthStore } from './auth'
 import {
   generateKeypair, wrapPrivateKey, unwrapPrivateKey,
@@ -53,7 +53,7 @@ export const useKeysStore = defineStore('keys', () => {
         status.value = 'locked'
       }
     } catch (e) {
-      if ((e as Error).message.includes('Not enrolled') || (e as Error).message.includes('404')) {
+      if (e instanceof ApiError && e.status === 404) {
         status.value = 'unenrolled'
       } else {
         error.value = (e as Error).message
@@ -85,9 +85,24 @@ export const useKeysStore = defineStore('keys', () => {
 
   async function unlock(passphrase: string): Promise<boolean> {
     if (!escrow) return false
+
+    let res: EscrowPayload
+    try {
+      res = await api.get<EscrowPayload>('/me/keys')
+    } catch (e) {
+      error.value = (e as Error).message
+      return false
+    }
+    // Refresh the cached escrow first so a reset from another device is
+    // unwrapped fresh, rather than unwrapping a stale local copy.
+    escrow = {
+      encryptedPrivateKey: res.encrypted_private_key,
+      salt: res.key_salt,
+      nonce: res.key_nonce,
+    }
+
     try {
       const priv = await unwrapPrivateKey(escrow, passphrase)
-      const res = await api.get<EscrowPayload>('/me/keys')
       keypair = { publicKey: res.public_key, privateKey: priv }
       localStorage.setItem(privStorageKey(), priv)
       localStorage.setItem(pubStorageKey(), res.public_key)
@@ -102,14 +117,28 @@ export const useKeysStore = defineStore('keys', () => {
 
   async function changePassphrase(oldP: string, newP: string): Promise<boolean> {
     if (!keypair) return false
+
+    let currentEscrow: WrappedPrivateKey
     try {
       const res = await api.get<EscrowPayload>('/me/keys')
-      const currentEscrow: WrappedPrivateKey = {
+      currentEscrow = {
         encryptedPrivateKey: res.encrypted_private_key,
         salt: res.key_salt,
         nonce: res.key_nonce,
       }
+    } catch (e) {
+      error.value = (e as Error).message
+      return false
+    }
+
+    try {
       await unwrapPrivateKey(currentEscrow, oldP) // throws if old passphrase wrong
+    } catch {
+      // Wrong old passphrase — the settings UI shows its own copy for this.
+      return false
+    }
+
+    try {
       const wrapped = await wrapPrivateKey(keypair.privateKey, newP)
       await api.patch('/me/keys', {
         encrypted_private_key: wrapped.encryptedPrivateKey,
@@ -198,10 +227,14 @@ export const useKeysStore = defineStore('keys', () => {
       })
       convKeys.set(convId, ck)
       return ck
-    } catch {
-      // Lost the creation race — fetch the winner's wrap
-      await loadConversationKeys()
-      return convKeys.get(convId) ?? null
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        // Lost the creation race — fetch the winner's wrap
+        await loadConversationKeys()
+        return convKeys.get(convId) ?? null
+      }
+      error.value = (e as Error).message
+      return null
     }
   }
 
@@ -212,8 +245,12 @@ export const useKeysStore = defineStore('keys', () => {
       await api.post(`/conversations/${convId}/keys`, {
         keys: [{ user_id: peerUserId, wrapped_key: await sealKey(ck, peerPublicKey) }],
       })
-    } catch {
-      // 409 = already re-wrapped (other tab/device beat us) — fine
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        // Already re-wrapped (other tab/device beat us) — fine
+        return
+      }
+      error.value = (e as Error).message
     }
   }
 
