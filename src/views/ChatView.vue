@@ -12,6 +12,8 @@ import Navbar from '../components/Navbar.vue'
 import Sidebar from '../components/Sidebar.vue'
 import Header from '../components/Header.vue'
 import OnboardingModal from '../components/OnboardingModal.vue'
+import KeySetupModal from '../components/KeySetupModal.vue'
+import { useKeysStore } from '../stores/keys'
 import FriendsPanel from '../components/FriendsPanel.vue'
 import SettingsPanel from '../components/SettingsPanel.vue'
 import TypingIndicator from '../components/TypingIndicator.vue'
@@ -20,6 +22,7 @@ const auth = useAuthStore()
 const chat = useChatStore()
 const dm = useDmStore()
 const friends = useFriendsStore()
+const keys = useKeysStore()
 const router = useRouter()
 
 const messageInput = ref('')
@@ -30,6 +33,10 @@ const activeView = ref<'room' | 'dm' | 'users' | 'friends' | 'settings' | null>(
 const sidebarOpen = ref(false)
 const filter = ref<'all' | 'dms' | 'rooms'>('all')
 const showOnboarding = ref(false)
+const keySetupDismissed = ref(false)
+const showKeySetup = computed(
+  () => (keys.status === 'unenrolled' || keys.status === 'locked') && !keySetupDismissed.value,
+)
 
 const activeTypingLabel = computed(() => {
   if (activeView.value === 'room') return chat.typingLabel
@@ -346,6 +353,7 @@ async function handleUserRowClick(user: DMUser) {
 async function logout() {
   chat.reset()
   dm.reset()
+  keys.reset()
   await auth.logout()
   router.push('/login')
 }
@@ -398,6 +406,7 @@ onMounted(() => {
   friends.fetchFriends()
   friends.fetchRequests()
   friends.subscribeSelf()
+  keys.init()
   if (!localStorage.getItem('onboarding_seen')) {
     showOnboarding.value = true
   }
@@ -412,6 +421,7 @@ onUnmounted(() => {
   chat.reset()
   dm.reset()
   friends.reset()
+  keys.reset()
 })
 </script>
 
@@ -732,6 +742,7 @@ onUnmounted(() => {
     </main>
 
     <OnboardingModal v-if="showOnboarding" @close="closeOnboarding" />
+    <KeySetupModal v-if="showKeySetup" @close="keySetupDismissed = true" />
 
     <!-- Error toasts -->
     <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 items-end">
