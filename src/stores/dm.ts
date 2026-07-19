@@ -5,15 +5,26 @@ import { getEcho } from '../lib/echo'
 import { useAuthStore } from './auth'
 import { throttle } from '../lib/throttle'
 import { createTypingIndicator } from '../composables/useTypingIndicator'
+import { useKeysStore } from './keys'
+import { encryptMessage, decryptMessage } from '../lib/crypto'
 
 export interface DMUser {
   id: number
   name: string
   email?: string
+  public_key?: string | null
   friendship_status?: 'none' | 'pending_sent' | 'pending_received' | 'friends'
   friendship_id?: number | null
 }
-export interface LastMessage { id: number; message: string; sender_id: number; created_at: string; deleted_at?: string | null }
+export interface LastMessage {
+  id: number
+  message: string
+  sender_id: number
+  created_at: string
+  deleted_at?: string | null
+  nonce?: string | null
+  enc_version?: number
+}
 export interface Conversation {
   id: number
   other_user: DMUser
@@ -30,6 +41,9 @@ export interface DirectMessage {
   read_at?: string | null
   created_at: string
   sender: DMUser
+  nonce?: string | null
+  enc_version?: number
+  decrypt_failed?: boolean
 }
 
 export const useDmStore = defineStore('dm', () => {
@@ -47,6 +61,40 @@ export const useDmStore = defineStore('dm', () => {
   let selfSubscribed = false
 
   const typing = createTypingIndicator()
+
+  function peerOf(convId: number): DMUser | null {
+    if (currentConv.value?.id === convId) return currentConv.value.other_user
+    return conversations.value.find(c => c.id === convId)?.other_user ?? null
+  }
+
+  /** Resolve an incoming message to plaintext (or a placeholder). Never throws. */
+  async function toPlain(dm: DirectMessage): Promise<DirectMessage> {
+    if (dm.enc_version !== 1 || dm.deleted_at) return dm
+    const keys = useKeysStore()
+    try {
+      const peer = peerOf(dm.conversation_id)
+      const ck = peer
+        ? await keys.ensureConversationKey(dm.conversation_id, peer)
+        : keys.getCachedKey(dm.conversation_id) ?? null
+      if (!ck) return { ...dm, message: '🔒 Encrypted message', decrypt_failed: true }
+      return { ...dm, message: await decryptMessage(dm.message, dm.nonce!, ck) }
+    } catch {
+      return { ...dm, message: '⚠️ Unable to decrypt', decrypt_failed: true }
+    }
+  }
+
+  /** Same for sidebar previews. */
+  async function previewToPlain(conv: Conversation): Promise<void> {
+    const lm = conv.last_message
+    if (!lm || lm.enc_version !== 1 || lm.deleted_at) return
+    const keys = useKeysStore()
+    try {
+      const ck = await keys.ensureConversationKey(conv.id, conv.other_user)
+      lm.message = ck ? await decryptMessage(lm.message, lm.nonce!, ck) : '🔒 Encrypted message'
+    } catch {
+      lm.message = '⚠️ Unable to decrypt'
+    }
+  }
 
   /**
    * Listen on our personal channel so the FIRST message of a brand-new
@@ -84,6 +132,7 @@ export const useDmStore = defineStore('dm', () => {
       // Listen on every conversation so messages in closed chats still update the sidebar
       conversations.value.forEach(c => subscribe(c.id))
       subscribeSelf()
+      await Promise.all(conversations.value.map(c => previewToPlain(c)))
     } catch (e) {
       error.value = (e as Error).message
     }
@@ -117,7 +166,7 @@ export const useDmStore = defineStore('dm', () => {
     loadingMessages.value = true
     try {
       const page = await api.get<Paginated<DirectMessage>>(`/conversations/${currentConv.value.id}/messages`)
-      messages.value = [...page.data].reverse()
+      messages.value = await Promise.all([...page.data].reverse().map(m => toPlain(m)))
     } catch (e) {
       error.value = (e as Error).message
     } finally {
@@ -139,14 +188,31 @@ export const useDmStore = defineStore('dm', () => {
     sending.value = true
     error.value = ''
     try {
-      const dm = await api.post<DirectMessage>(
-        `/conversations/${currentConv.value.id}/messages`,
-        { message: content },
-      )
-      if (!messages.value.find(m => m.id === dm.id)) {
-        messages.value.push(dm)
+      const conv = currentConv.value
+      const keys = useKeysStore()
+      let payload: Record<string, unknown> = { message: content }
+
+      if (keys.hasKey(conv.id) || conv.other_user.public_key) {
+        // E2E conversation (or peer is enrolled): never send plaintext
+        if (keys.status !== 'unlocked') {
+          error.value = 'Unlock encryption to send messages.'
+          return
+        }
+        const ck = await keys.ensureConversationKey(conv.id, conv.other_user)
+        if (!ck) {
+          error.value = 'Unlock encryption to send messages.'
+          return
+        }
+        const enc = await encryptMessage(content, ck)
+        payload = { message: enc.ciphertext, nonce: enc.nonce, enc_version: 1 }
       }
-      touchConversation(dm)
+
+      const dm = await api.post<DirectMessage>(`/conversations/${conv.id}/messages`, payload)
+      const plain = { ...dm, message: content }
+      if (!messages.value.find(m => m.id === plain.id)) {
+        messages.value.push(plain)
+      }
+      touchConversation(plain)
     } catch (e) {
       error.value = (e as Error).message
     } finally {
@@ -163,22 +229,24 @@ export const useDmStore = defineStore('dm', () => {
     if (subscribed.has(convId)) return
     subscribed.add(convId)
 
-    getEcho().private(`conversation.${convId}`).listen('DirectMessageSent', (e: DirectMessage) => {
-      if (currentConv.value?.id === e.conversation_id) {
+    getEcho().private(`conversation.${convId}`).listen('DirectMessageSent', async (e: DirectMessage) => {
+      const msg = await toPlain(e)
+      if (currentConv.value?.id === msg.conversation_id) {
         // Conversation is open — show the message and mark it read immediately
-        if (!messages.value.find(m => m.id === e.id)) {
-          messages.value.push(e)
+        if (!messages.value.find(m => m.id === msg.id)) {
+          messages.value.push(msg)
         }
         markRead(currentConv.value)
       } else {
         // Closed conversation — bump its unread badge
-        const conv = conversations.value.find(c => c.id === e.conversation_id)
+        const conv = conversations.value.find(c => c.id === msg.conversation_id)
         if (conv) conv.unread_count = (conv.unread_count ?? 0) + 1
       }
-      touchConversation(e)
-    }).listen('DirectMessageUpdated', (e: DirectMessage) => {
-      applyUpdate(e)
-      refreshPreview(e)
+      touchConversation(msg)
+    }).listen('DirectMessageUpdated', async (e: DirectMessage) => {
+      const msg = await toPlain(e)
+      applyUpdate(msg)
+      refreshPreview(msg)
     }).listen('DirectMessageDeleted', (e: { id: number; conversation_id: number; deleted_at: string }) => {
       applyUpdate({ id: e.id, message: '', deleted_at: e.deleted_at })
       refreshPreview({ ...e, message: '' })
@@ -235,12 +303,31 @@ export const useDmStore = defineStore('dm', () => {
   async function editMessage(id: number, content: string) {
     if (!currentConv.value || !content.trim()) return
     try {
+      const conv = currentConv.value
+      const keys = useKeysStore()
+      let payload: Record<string, unknown> = { message: content }
+
+      if (keys.hasKey(conv.id) || conv.other_user.public_key) {
+        if (keys.status !== 'unlocked') {
+          error.value = 'Unlock encryption to send messages.'
+          return
+        }
+        const ck = await keys.ensureConversationKey(conv.id, conv.other_user)
+        if (!ck) {
+          error.value = 'Unlock encryption to send messages.'
+          return
+        }
+        const enc = await encryptMessage(content, ck)
+        payload = { message: enc.ciphertext, nonce: enc.nonce, enc_version: 1 }
+      }
+
       const updated = await api.patch<DirectMessage>(
-        `/conversations/${currentConv.value.id}/messages/${id}`,
-        { message: content },
+        `/conversations/${conv.id}/messages/${id}`,
+        payload,
       )
-      applyUpdate(updated)
-      refreshPreview(updated)
+      const plain = { ...updated, message: content }
+      applyUpdate(plain)
+      refreshPreview(plain)
     } catch (e) {
       error.value = (e as Error).message
     }
