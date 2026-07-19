@@ -35,7 +35,7 @@ const filter = ref<'all' | 'dms' | 'rooms'>('all')
 const showOnboarding = ref(false)
 const keySetupDismissed = ref(false)
 const showKeySetup = computed(
-  () => (keys.status === 'unenrolled' || keys.status === 'locked') && !keySetupDismissed.value,
+  () => (keys.status === 'unenrolled' || keys.status === 'locked') && !keySetupDismissed.value && !showOnboarding.value,
 )
 
 const activeTypingLabel = computed(() => {
@@ -393,6 +393,17 @@ watch(
     if (e) {
       toast(e)
       friends.error = ''
+    }
+  },
+)
+watch(
+  () => keys.status,
+  async (s, prev) => {
+    if (s === 'unlocked' && prev && prev !== 'unlocked') {
+      await dm.fetchConversations()
+      if (activeView.value === 'dm' && dm.currentConv) {
+        await dm.fetchMessages()
+      }
     }
   },
 )

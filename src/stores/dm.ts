@@ -208,8 +208,9 @@ export const useDmStore = defineStore('dm', () => {
       const conv = currentConv.value
       const keys = useKeysStore()
       let payload: Record<string, unknown> = { message: content }
+      const hasEncryptedHistory = messages.value.some(m => m.enc_version === 1)
 
-      if (keys.hasKey(conv.id) || conv.other_user.public_key) {
+      if (keys.hasKey(conv.id) || hasEncryptedHistory || conv.other_user.public_key) {
         // E2E conversation (or peer is enrolled): never send plaintext
         if (keys.status !== 'unlocked') {
           error.value = 'Unlock encryption to send messages.'
@@ -323,8 +324,9 @@ export const useDmStore = defineStore('dm', () => {
       const conv = currentConv.value
       const keys = useKeysStore()
       let payload: Record<string, unknown> = { message: content }
+      const hasEncryptedHistory = messages.value.some(m => m.enc_version === 1)
 
-      if (keys.hasKey(conv.id) || conv.other_user.public_key) {
+      if (keys.hasKey(conv.id) || hasEncryptedHistory || conv.other_user.public_key) {
         if (keys.status !== 'unlocked') {
           error.value = 'Unlock encryption to send messages.'
           return
@@ -386,7 +388,7 @@ export const useDmStore = defineStore('dm', () => {
   return {
     users, conversations, currentConv, messages,
     loadingUsers, loadingMessages, sending, error,
-    fetchUsers, fetchConversations, openConversation, selectConversation, sendMessage, markRead, reset,
+    fetchUsers, fetchConversations, openConversation, selectConversation, fetchMessages, sendMessage, markRead, reset,
     editMessage, deleteMessage,
     notifyTyping, typingLabel: typing.label,
   }
