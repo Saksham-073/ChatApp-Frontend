@@ -207,23 +207,22 @@ export const useDmStore = defineStore('dm', () => {
     try {
       const conv = currentConv.value
       const keys = useKeysStore()
-      let payload: Record<string, unknown> = { message: content }
-      const hasEncryptedHistory = messages.value.some(m => m.enc_version === 1)
 
-      if (keys.hasKey(conv.id) || hasEncryptedHistory || conv.other_user.public_key) {
-        // E2E conversation (or peer is enrolled): never send plaintext
-        if (keys.status !== 'unlocked') {
-          error.value = 'Unlock encryption to send messages.'
-          return
-        }
-        const ck = await keys.ensureConversationKey(conv.id, conv.other_user)
-        if (!ck) {
-          error.value = 'Unlock encryption to send messages.'
-          return
-        }
-        const enc = await encryptMessage(content, ck)
-        payload = { message: enc.ciphertext, nonce: enc.nonce, enc_version: 1 }
+      if (!conv.other_user.public_key) {
+        error.value = 'This person has not enabled encryption yet — messages cannot be sent until they do.'
+        return
       }
+      if (keys.status !== 'unlocked') {
+        error.value = 'Unlock encryption to send messages.'
+        return
+      }
+      const ck = await keys.ensureConversationKey(conv.id, conv.other_user)
+      if (!ck) {
+        error.value = 'Unlock encryption to send messages.'
+        return
+      }
+      const enc = await encryptMessage(content, ck)
+      const payload = { message: enc.ciphertext, nonce: enc.nonce, enc_version: 1 }
 
       const dm = await api.post<DirectMessage>(`/conversations/${conv.id}/messages`, payload)
       const plain = { ...dm, message: content }
@@ -323,22 +322,22 @@ export const useDmStore = defineStore('dm', () => {
     try {
       const conv = currentConv.value
       const keys = useKeysStore()
-      let payload: Record<string, unknown> = { message: content }
-      const hasEncryptedHistory = messages.value.some(m => m.enc_version === 1)
 
-      if (keys.hasKey(conv.id) || hasEncryptedHistory || conv.other_user.public_key) {
-        if (keys.status !== 'unlocked') {
-          error.value = 'Unlock encryption to send messages.'
-          return
-        }
-        const ck = await keys.ensureConversationKey(conv.id, conv.other_user)
-        if (!ck) {
-          error.value = 'Unlock encryption to send messages.'
-          return
-        }
-        const enc = await encryptMessage(content, ck)
-        payload = { message: enc.ciphertext, nonce: enc.nonce, enc_version: 1 }
+      if (!conv.other_user.public_key) {
+        error.value = 'This person has not enabled encryption yet — messages cannot be sent until they do.'
+        return
       }
+      if (keys.status !== 'unlocked') {
+        error.value = 'Unlock encryption to send messages.'
+        return
+      }
+      const ck = await keys.ensureConversationKey(conv.id, conv.other_user)
+      if (!ck) {
+        error.value = 'Unlock encryption to send messages.'
+        return
+      }
+      const enc = await encryptMessage(content, ck)
+      const payload = { message: enc.ciphertext, nonce: enc.nonce, enc_version: 1 }
 
       const updated = await api.patch<DirectMessage>(
         `/conversations/${conv.id}/messages/${id}`,

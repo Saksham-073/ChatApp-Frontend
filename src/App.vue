@@ -1,9 +1,35 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import { RouterView } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import { useKeysStore } from './stores/keys'
 
 const auth = useAuthStore()
+const keys = useKeysStore()
+
+const IDLE_LOCK_MS = 15 * 60 * 1000
+const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'] as const
+let idleTimer: ReturnType<typeof setTimeout> | undefined
+
+function resetIdleTimer() {
+  clearTimeout(idleTimer)
+  if (!auth.user || keys.status !== 'unlocked') return
+  idleTimer = setTimeout(() => keys.lock(), IDLE_LOCK_MS)
+}
+
+onMounted(() => {
+  ACTIVITY_EVENTS.forEach((evt) => window.addEventListener(evt, resetIdleTimer, { passive: true }))
+  resetIdleTimer()
+})
+
+// Re-arm as soon as keys go from locked/unenrolled to unlocked (e.g. right after passphrase entry)
+watch(() => keys.status, resetIdleTimer)
+
+onUnmounted(() => {
+  clearTimeout(idleTimer)
+  ACTIVITY_EVENTS.forEach((evt) => window.removeEventListener(evt, resetIdleTimer))
+})
 </script>
 
 <template>

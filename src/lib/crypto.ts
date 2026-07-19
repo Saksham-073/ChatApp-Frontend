@@ -1,6 +1,5 @@
 import type _sodiumT from 'libsodium-wrappers-sumo'
 
-// Lazily loaded so the login-page bundle doesn't carry ~230KB of wasm/asm crypto
 let sodiumInstance: typeof _sodiumT | null = null
 
 async function lib(): Promise<typeof _sodiumT> {
@@ -67,7 +66,6 @@ export async function wrapPrivateKey(
   }
 }
 
-/** Throws if the passphrase is wrong (secretbox authentication failure). */
 export async function unwrapPrivateKey(
   wrapped: WrappedPrivateKey,
   passphrase: string,
@@ -120,7 +118,6 @@ export async function encryptMessage(
   }
 }
 
-/** Throws on tampered ciphertext or wrong key. */
 export async function decryptMessage(
   ciphertextB64: string,
   nonceB64: string,
