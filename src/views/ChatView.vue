@@ -446,6 +446,27 @@ onUnmounted(() => {
     <main class="flex-1 flex flex-col overflow-hidden min-w-0">
       <Header v-model:open="sidebarOpen" :active-view="activeView" />
 
+      <!-- Peer security key changed notice -->
+      <div
+        v-if="
+          activeView === 'dm' &&
+          dm.currentConv &&
+          keys.peerKeyChanged.has(dm.currentConv.other_user.id)
+        "
+        class="mx-4 md:mx-6 mt-3 glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs text-amber-600 dark:text-amber-400 border border-amber-500/20"
+      >
+        <span class="flex items-center gap-2">
+          <Icon icon="lucide:key-round" class="w-3.5 h-3.5 shrink-0" />
+          {{ dm.currentConv.other_user.name }}'s security key changed.
+        </span>
+        <button
+          class="hover:text-ink cursor-pointer shrink-0"
+          @click="keys.dismissPeerKeyChange(dm.currentConv.other_user.id)"
+        >
+          Dismiss
+        </button>
+      </div>
+
       <!-- Empty state -->
       <template v-if="!activeView">
         <div class="flex-1 flex flex-col items-center justify-center gap-5 px-6">
