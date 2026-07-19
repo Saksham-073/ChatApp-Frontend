@@ -405,6 +405,10 @@ watch(
         await dm.fetchMessages()
       }
     }
+    if (s === 'locked' && prev === 'unlocked') {
+      // Auto-lock (idle timeout) — surface the unlock prompt even if it was dismissed earlier
+      keySetupDismissed.value = false
+    }
   },
 )
 

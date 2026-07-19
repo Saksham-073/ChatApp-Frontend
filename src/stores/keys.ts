@@ -264,6 +264,14 @@ export const useKeysStore = defineStore('keys', () => {
     peerKeyChanged.value = next
   }
 
+  function lock() {
+    if (status.value !== 'unlocked') return
+    keypair = null
+    convKeys.clear()
+    localStorage.removeItem(privStorageKey())
+    status.value = 'locked'
+  }
+
   function reset() {
     // Logout: drop in-memory secrets but keep localStorage (trusted-device model;
     // init() ignores it if a different user logs in — pub key comparison fails)
@@ -277,7 +285,7 @@ export const useKeysStore = defineStore('keys', () => {
 
   return {
     status, error, peerKeyChanged,
-    init, enroll, unlock, changePassphrase, resetKeys,
+    init, enroll, unlock, lock, changePassphrase, resetKeys,
     hasKey, getCachedKey, ensureConversationKey, rewrapForPeer,
     notePeerKeyChange, dismissPeerKeyChange, reset,
   }
