@@ -2,6 +2,7 @@
 import { Icon } from '@iconify/vue'
 import { useChatStore } from '../stores/chat'
 import { useDmStore } from '../stores/dm'
+import { useKeysStore } from '../stores/keys'
 import { initials, hue, connStatus } from '../lib/ui'
 
 defineProps<{
@@ -12,6 +13,7 @@ const open = defineModel<boolean>('open', { required: true })
 
 const chat = useChatStore()
 const dm = useDmStore()
+const keys = useKeysStore()
 </script>
 
 <template>
@@ -41,6 +43,12 @@ const dm = useDmStore()
       <span class="text-ink text-sm font-semibold truncate">{{
         dm.currentConv.other_user.name
       }}</span>
+      <Icon
+        v-if="keys.hasKey(dm.currentConv.id)"
+        icon="lucide:lock"
+        class="w-3.5 h-3.5 text-violet-500 dark:text-violet-400 shrink-0"
+        title="End-to-end encrypted"
+      />
     </template>
 
     <template v-else-if="activeView === 'users'">

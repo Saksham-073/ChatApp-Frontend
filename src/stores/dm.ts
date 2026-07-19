@@ -112,6 +112,23 @@ export const useDmStore = defineStore('dm', () => {
       // New conversation: pull the list (brings unread count + preview) and subscribe to it
       await fetchConversations()
     })
+      .listen('UserKeysChanged', async (e: { user_id: number; public_key: string }) => {
+        const keys = useKeysStore()
+        // Refresh the peer's public key everywhere we hold it
+        for (const conv of conversations.value) {
+          if (conv.other_user.id === e.user_id) {
+            conv.other_user.public_key = e.public_key
+            // We still hold the CK — re-wrap it to the peer's new key so their history heals
+            await keys.rewrapForPeer(conv.id, e.user_id, e.public_key)
+          }
+        }
+        if (currentConv.value?.other_user.id === e.user_id) {
+          currentConv.value.other_user.public_key = e.public_key
+        }
+        const userRow = users.value.find(u => u.id === e.user_id)
+        if (userRow) userRow.public_key = e.public_key
+        keys.notePeerKeyChange(e.user_id)
+      })
   }
 
   async function fetchUsers() {
