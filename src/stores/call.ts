@@ -135,9 +135,10 @@ export const useCallStore = defineStore('call', () => {
       clearReconnectTimer()
       reconnecting.value = false
       status.value = 'active'
-      clearElapsedTimer()
-      elapsedSeconds.value = 0
-      elapsedTimer = window.setInterval(() => { elapsedSeconds.value += 1 }, 1000)
+      if (elapsedTimer === undefined) {
+        elapsedSeconds.value = 0
+        elapsedTimer = window.setInterval(() => { elapsedSeconds.value += 1 }, 1000)
+      }
       clearHeartbeatTimer()
       const record = current.value
       if (record) {
