@@ -17,12 +17,16 @@ import { useKeysStore } from '../stores/keys'
 import FriendsPanel from '../components/FriendsPanel.vue'
 import SettingsPanel from '../components/SettingsPanel.vue'
 import TypingIndicator from '../components/TypingIndicator.vue'
+import CallLayer from '../components/call/CallLayer.vue'
+import CallTimelineRow from '../components/call/CallTimelineRow.vue'
+import { useCallStore, type CallRecord } from '../stores/call'
 
 const auth = useAuthStore()
 const chat = useChatStore()
 const dm = useDmStore()
 const friends = useFriendsStore()
 const keys = useKeysStore()
+const call = useCallStore()
 const router = useRouter()
 
 const messageInput = ref('')
@@ -107,23 +111,46 @@ const activeMessages = computed<UnifiedMsg[]>(() => {
 type RenderItem =
   | { type: 'date'; key: string; label: string }
   | { type: 'msg'; key: number; msg: UnifiedMsg; showHeader: boolean }
+  | { type: 'call'; key: string; call: CallRecord }
 
 const GROUP_GAP_MS = 2 * 60 * 1000
 
+// ── Merged message + call timeline (DM only) ─────────────────────────
+
+const timeline = computed(() => {
+  const msgs = activeMessages.value.map((m) => ({ kind: 'message' as const, at: m.at, msg: m }))
+  if (activeView.value !== 'dm' || !dm.currentConv) return msgs
+  const calls = (call.historyByConv.get(dm.currentConv.id) ?? []).map((c) => ({
+    kind: 'call' as const,
+    at: c.started_at,
+    call: c,
+  }))
+  return [...msgs, ...calls].sort((a, b) => a.at.localeCompare(b.at))
+})
+
 const renderItems = computed<RenderItem[]>(() => {
   const items: RenderItem[] = []
-  let prev: UnifiedMsg | null = null
-  for (const m of activeMessages.value) {
-    if (!prev || dayLabel(prev.at) !== dayLabel(m.at)) {
-      items.push({ type: 'date', key: `date-${m.id}`, label: dayLabel(m.at) })
-      prev = null
+  let prevAt: string | null = null
+  let prevMsg: UnifiedMsg | null = null
+  for (const entry of timeline.value) {
+    if (!prevAt || dayLabel(prevAt) !== dayLabel(entry.at)) {
+      const key = entry.kind === 'call' ? `call-${entry.call.id}` : entry.msg.id
+      items.push({ type: 'date', key: `date-${key}`, label: dayLabel(entry.at) })
+      prevMsg = null
     }
-    const showHeader =
-      !prev ||
-      prev.senderId !== m.senderId ||
-      new Date(m.at).getTime() - new Date(prev.at).getTime() > GROUP_GAP_MS
-    items.push({ type: 'msg', key: m.id, msg: m, showHeader })
-    prev = m
+    if (entry.kind === 'call') {
+      items.push({ type: 'call', key: `call-${entry.call.id}`, call: entry.call })
+      prevMsg = null
+    } else {
+      const m = entry.msg
+      const showHeader =
+        !prevMsg ||
+        prevMsg.senderId !== m.senderId ||
+        new Date(m.at).getTime() - new Date(prevMsg.at).getTime() > GROUP_GAP_MS
+      items.push({ type: 'msg', key: m.id, msg: m, showHeader })
+      prevMsg = m
+    }
+    prevAt = entry.at
   }
   return items
 })
@@ -397,6 +424,14 @@ watch(
   },
 )
 watch(
+  () => dm.currentConv,
+  (conv) => {
+    if (!conv) return
+    call.fetchHistory(conv.id)
+    call.markConversationCallsSeen(conv.id)
+  },
+)
+watch(
   () => keys.status,
   async (s, prev) => {
     if (s === 'unlocked' && prev && prev !== 'unlocked') {
@@ -422,6 +457,8 @@ onMounted(() => {
   friends.fetchRequests()
   friends.subscribeSelf()
   keys.init()
+  call.init()
+  call.fetchMissed()
   if (!localStorage.getItem('onboarding_seen')) {
     showOnboarding.value = true
   }
@@ -437,11 +474,13 @@ onUnmounted(() => {
   dm.reset()
   friends.reset()
   keys.reset()
+  call.reset()
 })
 </script>
 
 <template>
   <div class="relative z-10 h-dvh flex overflow-hidden text-ink-2">
+    <CallLayer />
     <Navbar v-model:filter="filter" @logout="logout" @show-settings="showSettings" />
 
     <Sidebar
@@ -580,6 +619,9 @@ onUnmounted(() => {
                   {{ item.label }}
                 </span>
               </div>
+
+              <!-- Call entry -->
+              <CallTimelineRow v-else-if="item.type === 'call'" :call="item.call" />
 
               <!-- Message -->
               <div

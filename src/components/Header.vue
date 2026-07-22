@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useChatStore } from '../stores/chat'
 import { useDmStore } from '../stores/dm'
 import { useKeysStore } from '../stores/keys'
+import { useCallStore } from '../stores/call'
 import { initials, hue, connStatus } from '../lib/ui'
 
 defineProps<{
@@ -14,6 +16,16 @@ const open = defineModel<boolean>('open', { required: true })
 const chat = useChatStore()
 const dm = useDmStore()
 const keys = useKeysStore()
+const call = useCallStore()
+
+const hasMediaDevices = computed(() => typeof navigator !== 'undefined' && !!navigator.mediaDevices)
+const callDisabled = computed(() => call.status !== 'idle' || !hasMediaDevices.value)
+
+function callTooltip(kind: 'audio' | 'video') {
+  if (!hasMediaDevices.value) return 'No microphone available'
+  if (call.status !== 'idle') return 'Already in a call'
+  return kind === 'audio' ? 'Start audio call' : 'Start video call'
+}
 </script>
 
 <template>
@@ -49,6 +61,24 @@ const keys = useKeysStore()
         class="w-3.5 h-3.5 text-violet-500 dark:text-violet-400 shrink-0"
         title="End-to-end encrypted"
       />
+      <div class="flex items-center gap-1 shrink-0">
+        <button
+          :disabled="callDisabled"
+          :title="callTooltip('audio')"
+          class="w-8 h-8 rounded-lg flex items-center justify-center text-ink-4 hover:text-violet-500 dark:hover:text-violet-400 hover:bg-hovered disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+          @click="call.startCall(dm.currentConv!.id, 'audio')"
+        >
+          <Icon icon="mdi:phone" class="w-4 h-4" />
+        </button>
+        <button
+          :disabled="callDisabled"
+          :title="callTooltip('video')"
+          class="w-8 h-8 rounded-lg flex items-center justify-center text-ink-4 hover:text-violet-500 dark:hover:text-violet-400 hover:bg-hovered disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+          @click="call.startCall(dm.currentConv!.id, 'video')"
+        >
+          <Icon icon="mdi:video" class="w-4 h-4" />
+        </button>
+      </div>
     </template>
 
     <template v-else-if="activeView === 'users'">

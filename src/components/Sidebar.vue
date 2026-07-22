@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import { useChatStore, type Room } from '../stores/chat'
 import { useDmStore, type Conversation } from '../stores/dm'
 import { useFriendsStore } from '../stores/friends'
+import { useCallStore } from '../stores/call'
 import { theme, toggleTheme } from '../lib/theme'
 import { initials, hue, rel, connStatus } from '../lib/ui'
 
@@ -29,6 +30,7 @@ const auth = useAuthStore()
 const chat = useChatStore()
 const dm = useDmStore()
 const friends = useFriendsStore()
+const call = useCallStore()
 
 // ── Search & filtering ───────────────────────────────────────────────
 
@@ -317,6 +319,15 @@ function isActiveConv(conv: Conversation) {
               v-if="(conv.unread_count ?? 0) > 0"
               class="bg-linear-to-r from-violet-500 to-violet-700 text-white text-[10px] font-bold rounded-full min-w-[19px] h-[19px] px-1.5 flex items-center justify-center shrink-0 shadow-[0_2px_10px_rgba(139,92,246,0.5)]"
               >{{ (conv.unread_count ?? 0) > 99 ? '99+' : conv.unread_count }}</span
+            >
+            <span
+              v-if="(call.missedCountByConv.get(conv.id) ?? 0) > 0"
+              class="bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-[19px] h-[19px] px-1.5 flex items-center justify-center shrink-0 shadow-[0_2px_10px_rgba(244,63,94,0.5)]"
+              >{{
+                (call.missedCountByConv.get(conv.id) ?? 0) > 99
+                  ? '99+'
+                  : call.missedCountByConv.get(conv.id)
+              }}</span
             >
           </li>
         </ul>
