@@ -8,6 +8,9 @@ Talks to the Laravel backend in the `chatApp-Backend` repository over REST (`/ap
 
 - **Group rooms** — public channels anyone can join; create rooms from the sidebar
 - **Direct messages** — private one-on-one conversations over authenticated private channels
+- **1:1 audio/video calling** — WebRTC calls over DMs (ring, accept/decline, mute, camera toggle, screen share, picture-in-picture), signaled via Pusher whispers with a perfect-negotiation peer connection; missed-call badges and a merged call/message history timeline. TURN relay via Cloudflare Realtime for NAT/AP-isolated networks — see backend README for setup
+- **End-to-end encrypted DMs** — messages encrypted client-side (libsodium) with a passphrase-derived key hierarchy independent of your login password; auto-locks after 15 minutes idle, with peer key-reset detection (re-wrap + TOFU banner) and a plaintext-downgrade guard
+- **Typing indicators** — live "user is typing…" in both rooms and DMs
 - **Live everywhere** — subscribed to *all* your conversations, so closed chats still get unread badges, last-message previews, and reorder to the top in real time
 - **Read receipts & unread counts** — conversations are marked read on open
 - **Edit & delete** — edit your own messages within 15 minutes (hover/tap actions, composer edit mode, "(edited)" label); soft-delete anytime with a two-tap confirm, leaving a "this message was deleted" tombstone. Both sync live to the other side
@@ -28,8 +31,11 @@ Talks to the Laravel backend in the `chatApp-Backend` repository over REST (`/ap
 | State | Pinia |
 | Routing | Vue Router (auth guards) |
 | Styling | Tailwind CSS v4 (CSS-variable theme tokens) |
-| Icons | Iconify (`@iconify/vue`, `lucide` set) |
+| Icons | Iconify (`@iconify/vue`, `lucide` set + `mdi` for calling) |
 | Real-time | laravel-echo + pusher-js |
+| Calling | native WebRTC (`RTCPeerConnection`), signaled over Pusher whispers |
+| Encryption | libsodium-wrappers-sumo (client-side E2E for DMs) |
+| Testing | Vitest + happy-dom |
 | Font | Sora (Google Fonts) |
 
 ## Getting Started
@@ -81,15 +87,21 @@ src/
 │   ├── echo.ts      # lazy Echo factory (private channel auth), connectionState ref
 │   ├── theme.ts     # light/dark mode: localStorage + .dark class on <html>
 │   └── ui.ts        # shared view helpers: initials, avatar hue, relative time, connStatus
+├── composables/
+│   └── useWebRTC.ts # perfect-negotiation RTCPeerConnection wrapper (Echo/Pinia-free)
 ├── stores/
 │   ├── auth.ts      # login/register/logout, cached init() session restore
 │   ├── chat.ts      # rooms, room messages, send/edit/delete, public channel subscription
-│   └── dm.ts        # users, conversations, DMs, send/edit/delete, per-conversation private
-│                    #   channels, unread counts, mark-read, last-message previews
+│   ├── dm.ts        # users, conversations, DMs, send/edit/delete, per-conversation private
+│   │                #   channels, unread counts, mark-read, last-message previews
+│   ├── keys.ts      # E2E key hierarchy: enroll/unlock/lock, idle auto-lock, peer resets
+│   └── call.ts      # call lifecycle state machine, WebRTC signaling, ICE server fetch/cache
 ├── components/
 │   ├── Navbar.vue     # desktop icon rail (filters, theme toggle, avatar, logout)
 │   ├── Sidebar.vue    # conversation list drawer (search, rooms + DMs, create room)
-│   └── Header.vue     # thread header (title, connection status, mobile menu button)
+│   ├── Header.vue     # thread header (title, connection status, call buttons, mobile menu)
+│   ├── TypingIndicator.vue
+│   └── call/          # CallLayer, IncomingCallModal, CallOverlay, CallPiP, CallTimelineRow
 ├── views/
 │   ├── LoginView.vue  # glass auth card + theme toggle
 │   └── ChatView.vue   # thread pane orchestrator: messages, edit/delete, composer, toasts
