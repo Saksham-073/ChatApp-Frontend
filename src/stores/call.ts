@@ -49,6 +49,8 @@ export const useCallStore = defineStore('call', () => {
   let cameraTrack: MediaStreamTrack | null = null
   let screenStream: MediaStream | null = null
   let cachedIceServers: RTCIceServer[] | null = null
+  let cachedIceServersAt = 0
+  const ICE_SERVERS_TTL_MS = 12 * 60 * 60 * 1000 // safe margin under the 24h backend credential TTL
   let ringTimer: number | undefined
   let heartbeatTimer: number | undefined
   let elapsedTimer: number | undefined
@@ -89,9 +91,10 @@ export const useCallStore = defineStore('call', () => {
   }
 
   async function ensureIceServers(): Promise<RTCIceServer[]> {
-    if (cachedIceServers) return cachedIceServers
+    if (cachedIceServers && Date.now() - cachedIceServersAt < ICE_SERVERS_TTL_MS) return cachedIceServers
     const res = await api.get<{ iceServers: RTCIceServer[] }>('/ice-servers')
     cachedIceServers = res.iceServers
+    cachedIceServersAt = Date.now()
     return cachedIceServers
   }
 
@@ -422,6 +425,7 @@ export const useCallStore = defineStore('call', () => {
     }
     initialized = false
     cachedIceServers = null
+    cachedIceServersAt = 0
     missedCalls.value = []
     historyByConv.value = new Map()
     callError.value = ''
