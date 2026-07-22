@@ -126,6 +126,38 @@ describe('call store', () => {
     expect(echoMock.leaveChannel).toHaveBeenCalledWith('private-call.7')
   })
 
+  it('acceptCall fetches ICE servers before accepting', async () => {
+    const store = useCallStore()
+    store.init()
+    const initiatedHandler = channelMock.listen.mock.calls
+      .find(([event]) => event === 'CallInitiated')![1]
+    initiatedHandler({ call: fakeCall() })
+
+    apiMock.get.mockResolvedValueOnce({ iceServers: [{ urls: 'stun:x' }] })
+    apiMock.post.mockResolvedValueOnce(fakeCall({ status: 'ongoing' }))
+
+    await store.acceptCall(true)
+
+    expect(apiMock.get).toHaveBeenCalledWith('/ice-servers')
+    expect(store.status).toBe('connecting')
+  })
+
+  it('acceptCall aborts without joining the channel when ICE-server fetch fails', async () => {
+    const store = useCallStore()
+    store.init()
+    const initiatedHandler = channelMock.listen.mock.calls
+      .find(([event]) => event === 'CallInitiated')![1]
+    initiatedHandler({ call: fakeCall() })
+
+    apiMock.get.mockRejectedValueOnce(new Error('network down'))
+
+    await store.acceptCall(true)
+
+    expect(apiMock.post).not.toHaveBeenCalled()
+    expect(store.status).toBe('incoming-ringing')
+    expect(store.callError).toBeTruthy()
+  })
+
   it('fetchMissed loads unseen missed calls and counts per conversation', async () => {
     // GET /calls/missed is a bare, non-paginated array — no `data` key (see Task 4 Interfaces)
     apiMock.get.mockResolvedValueOnce([fakeCall({ status: 'missed' })])

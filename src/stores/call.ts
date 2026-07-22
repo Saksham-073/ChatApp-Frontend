@@ -260,6 +260,14 @@ export const useCallStore = defineStore('call', () => {
     const record = current.value
     if (!record || status.value !== 'incoming-ringing') return
     callError.value = ''
+
+    try {
+      await ensureIceServers()
+    } catch (e) {
+      callError.value = (e as Error).message || 'Could not accept call'
+      return
+    }
+
     joinCallChannel(record)
 
     const wantVideo = record.type === 'video' && withVideo
@@ -407,6 +415,10 @@ export const useCallStore = defineStore('call', () => {
     const auth = useAuthStore()
     if (initialized && auth.user) {
       getEcho().leaveChannel(`private-user.${auth.user.id}`)
+    }
+    if (initialized) {
+      window.removeEventListener('beforeunload', handleUnload)
+      window.removeEventListener('pagehide', handleUnload)
     }
     initialized = false
     cachedIceServers = null
