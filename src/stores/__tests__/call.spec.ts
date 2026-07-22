@@ -33,6 +33,7 @@ vi.mock('../../composables/useWebRTC', () => ({ createPeer: vi.fn(() => peerMock
 
 import { useCallStore } from '../call'
 import { useAuthStore } from '../auth'
+import { createPeer } from '../../composables/useWebRTC'
 
 const fakeStream = {
   getTracks: () => [{ kind: 'audio', stop: vi.fn(), enabled: true }],
@@ -134,5 +135,28 @@ describe('call store', () => {
 
     expect(store.missedCalls).toHaveLength(1)
     expect(store.missedCountByConv.get(3)).toBe(1)
+  })
+
+  it('preserves elapsed time across an ICE reconnect', async () => {
+    apiMock.post.mockResolvedValueOnce(fakeCall())
+    apiMock.get.mockResolvedValueOnce({ iceServers: [] })
+    const store = useCallStore()
+    await store.startCall(3, 'video')
+
+    const callAcceptedHandler = channelMock.listen.mock.calls
+      .find(([event]) => event === 'CallAccepted')![1]
+    callAcceptedHandler({ call: fakeCall() })
+
+    const onConnectionState = (createPeer as any).mock.calls[0][0].onConnectionState
+    onConnectionState('connected')
+    expect(store.elapsedSeconds).toBe(0)
+
+    store.elapsedSeconds = 10
+    onConnectionState('disconnected')
+    expect(store.reconnecting).toBe(true)
+
+    onConnectionState('connected')
+    expect(store.elapsedSeconds).toBe(10)
+    expect(store.reconnecting).toBe(false)
   })
 })
