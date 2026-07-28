@@ -49,3 +49,4 @@ graphify-out
 .claude-flow
 CLAUDE.md
 .mcp.json
+.env
