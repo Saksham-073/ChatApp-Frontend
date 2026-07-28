@@ -159,7 +159,7 @@ describe('call store', () => {
   })
 
   it('fetchMissed loads unseen missed calls and counts per conversation', async () => {
-    // GET /calls/missed is a bare, non-paginated array — no `data` key (see Task 4 Interfaces)
+    // GET /calls/missed is a bare, non-paginated array - no `data` key (see Task 4 Interfaces)
     apiMock.get.mockResolvedValueOnce([fakeCall({ status: 'missed' })])
     const store = useCallStore()
 

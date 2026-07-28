@@ -93,7 +93,7 @@ const friends = useFriendsStore()
       </ul>
       <p v-else class="text-ink-4 text-sm flex items-center gap-2 py-4">
         <Icon icon="lucide:users" class="w-4 h-4" />
-        No friends yet — add some from the New DM list
+        No friends yet. Add some from the New DM list
       </p>
     </section>
   </div>

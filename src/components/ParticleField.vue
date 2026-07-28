@@ -3,7 +3,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import * as THREE from 'three'
 import { theme } from '../lib/theme'
 
-// Hidden entirely when WebGL is unavailable or the user prefers reduced motion —
+// Hidden entirely when WebGL is unavailable or the user prefers reduced motion -
 // the global CSS aurora then remains the visible background.
 const enabled = ref(true)
 const canvas = ref<HTMLCanvasElement | null>(null)
@@ -167,7 +167,7 @@ onMounted(() => {
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_DPR))
   renderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.setClearColor(0x000000, 0) // transparent — aurora shows through
+  renderer.setClearColor(0x000000, 0) // transparent - aurora shows through
 
   seedParticles()
   buildScene()
@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
   lines?.geometry.dispose()
   pointsMaterial?.dispose()
   lineMaterial?.dispose()
-  // forceContextLoss before dispose() releases the WebGL context — dispose() alone
+  // forceContextLoss before dispose() releases the WebGL context - dispose() alone
   // leaves it for GC, leaking contexts across login/logout re-mount cycles.
   renderer?.forceContextLoss()
   renderer?.dispose()

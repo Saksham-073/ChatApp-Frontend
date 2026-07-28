@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const loading = ref(false)
 
-  // Cached promise — ensures /me is called only once across router guards and components
+  // Cached promise - ensures /me is called only once across router guards and components
   let initPromise: Promise<void> | null = null
 
   function init(): Promise<void> {
@@ -25,7 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       user.value = await api.get<User>('/me')
     } catch {
-      // Token is invalid or expired — clear everything
+      // Token is invalid or expired - clear everything
       _clearState()
     } finally {
       loading.value = false
@@ -50,7 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await api.post('/logout', {})
     } catch {
-      // Ignore — token may already be expired; still clear local state
+      // Ignore - token may already be expired; still clear local state
     }
     resetEcho()
     _clearState()

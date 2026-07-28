@@ -1,7 +1,7 @@
 /**
  * Thin wrapper around RTCPeerConnection implementing the "perfect negotiation"
  * pattern (https://w3c.github.io/webrtc-pc/#perfect-negotiation-example).
- * Knows nothing about Echo or Pinia — signaling I/O is injected.
+ * Knows nothing about Echo or Pinia - signaling I/O is injected.
  */
 export type SignalType = 'offer' | 'answer' | 'ice'
 export interface Signal {
@@ -59,7 +59,7 @@ export function createPeer(opts: PeerOptions): Peer {
       try {
         await pc.addIceCandidate(s.payload as RTCIceCandidateInit)
       } catch {
-        // Candidates for an ignored offer — safe to drop
+        // Candidates for an ignored offer - safe to drop
       }
       return
     }

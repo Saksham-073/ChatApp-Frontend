@@ -39,10 +39,10 @@ __screenshots__/
 # Vite
 *.timestamp-*-*.mjs
 
-# Superpowers workflow artifacts (specs/plans) — kept locally, not versioned
+# local planning notes, not versioned
 docs/superpowers/
 
-# Claude Code local config — kept locally, not versioned
+# local tool config, not versioned
 .claude/
 graphify-out
 .worktrees/

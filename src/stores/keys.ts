@@ -110,7 +110,7 @@ export const useKeysStore = defineStore('keys', () => {
       await loadConversationKeys()
       return true
     } catch {
-      // secretbox auth failure — wrong passphrase
+      // secretbox auth failure - wrong passphrase
       return false
     }
   }
@@ -134,7 +134,7 @@ export const useKeysStore = defineStore('keys', () => {
     try {
       await unwrapPrivateKey(currentEscrow, oldP) // throws if old passphrase wrong
     } catch {
-      // Wrong old passphrase — the settings UI shows its own copy for this.
+      // Wrong old passphrase - the settings UI shows its own copy for this.
       return false
     }
 
@@ -185,7 +185,7 @@ export const useKeysStore = defineStore('keys', () => {
         try {
           convKeys.set(row.conversation_id, await unsealKey(row.wrapped_key, keypair))
         } catch {
-          // Wrap sealed to a previous keypair (pre-reset) — peer re-wrap will heal it
+          // Wrap sealed to a previous keypair (pre-reset) - peer re-wrap will heal it
         }
       }
     } catch {
@@ -208,7 +208,7 @@ export const useKeysStore = defineStore('keys', () => {
     if (convKeys.has(convId)) return convKeys.get(convId)!
     if (status.value !== 'unlocked' || !keypair) return null
 
-    // A wrap may have been created since our last bulk load — refetch
+    // A wrap may have been created since our last bulk load - refetch
     await loadConversationKeys()
     if (convKeys.has(convId)) return convKeys.get(convId)!
 
@@ -229,7 +229,7 @@ export const useKeysStore = defineStore('keys', () => {
       return ck
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
-        // Lost the creation race — fetch the winner's wrap
+        // Lost the creation race - fetch the winner's wrap
         await loadConversationKeys()
         return convKeys.get(convId) ?? null
       }
@@ -247,7 +247,7 @@ export const useKeysStore = defineStore('keys', () => {
       })
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
-        // Already re-wrapped (other tab/device beat us) — fine
+        // Already re-wrapped (other tab/device beat us) - fine
         return
       }
       error.value = (e as Error).message
@@ -274,7 +274,7 @@ export const useKeysStore = defineStore('keys', () => {
 
   function reset() {
     // Logout: drop in-memory secrets but keep localStorage (trusted-device model;
-    // init() ignores it if a different user logs in — pub key comparison fails)
+    // init() ignores it if a different user logs in - pub key comparison fails)
     keypair = null
     escrow = null
     convKeys.clear()

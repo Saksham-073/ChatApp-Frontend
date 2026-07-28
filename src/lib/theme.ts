@@ -19,5 +19,5 @@ export function toggleTheme() {
   apply(theme.value)
 }
 
-// Apply immediately on module load — before the app mounts — to avoid a flash
+// Apply immediately on module load - before the app mounts - to avoid a flash
 apply(theme.value)

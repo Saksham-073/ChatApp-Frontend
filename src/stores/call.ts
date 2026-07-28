@@ -109,7 +109,7 @@ export const useCallStore = defineStore('call', () => {
       }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-        callError.value = 'Camera unavailable — continuing with audio only.'
+        callError.value = 'Camera unavailable, continuing with audio only.'
         return stream
       } catch {
         callError.value = 'Microphone access is required to make a call.'
@@ -300,7 +300,7 @@ export const useCallStore = defineStore('call', () => {
     try {
       await api.post(`/calls/${record.id}/decline`, {})
     } catch {
-      // Best-effort — the server may already know; clean up locally regardless.
+      // Best-effort - the server may already know; clean up locally regardless.
     }
     cleanup()
   }
@@ -314,7 +314,7 @@ export const useCallStore = defineStore('call', () => {
     try {
       await api.post(`/calls/${record.id}/end`, reason ? { reason } : {})
     } catch {
-      // Best-effort — cleanup locally regardless (idempotent server makes double-end harmless).
+      // Best-effort - cleanup locally regardless (idempotent server makes double-end harmless).
     }
     cleanup()
   }
@@ -347,7 +347,7 @@ export const useCallStore = defineStore('call', () => {
       screenSharing.value = true
       track.onended = () => { revertScreenShare() }
     } catch {
-      // User cancelled the screen picker — no-op
+      // User cancelled the screen picker - no-op
     }
   }
 

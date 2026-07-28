@@ -58,7 +58,7 @@ let sphereGroup: THREE.Group | null = null
 let updaters: Updater[] = []
 let disposables: { dispose(): void }[] = []
 
-// Theme-reactive colour state — read each frame by updaters
+// Theme-reactive colour state - read each frame by updaters
 type HasColor = { color: THREE.Color }
 const coloredMats:  Array<{ mat: HasColor; key: 'accent' | 'bright' }> = []
 const blendableMats: THREE.Material[] = []
@@ -163,7 +163,7 @@ const easeOut3 = (x: number) => 1 - (1 - Math.min(1, x)) ** 3
 
 function applyColors() {
   const dark = theme.value === 'dark'
-  // Deep purples in light mode — must be readable on near-white background
+  // Deep purples in light mode - must be readable on near-white background
   accentHex   = dark ? CFG.color.accent : 0x4c1d95
   brightHex   = dark ? CFG.color.bright : 0x5b21b6
   // Hide additive glow + kill bloom in light mode (both create a blown-out white blob)

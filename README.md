@@ -1,28 +1,28 @@
-# ChatApp — Frontend
+# ChatApp Frontend
 
-A real-time chat SPA built with Vue 3, TypeScript, and Tailwind CSS v4, featuring an "Aurora Glass" design — frosted-glass panels floating over an animated gradient backdrop, with full light/dark theming.
+Real-time chat SPA built with Vue 3, TypeScript, and Tailwind CSS v4. The UI is an "Aurora Glass" look: frosted panels floating over an animated gradient backdrop, in both light and dark themes.
 
 Talks to the Laravel backend in the `chatApp-Backend` repository over REST (`/api`) and receives live messages through Pusher WebSockets (Laravel Echo).
 
 ## Features
 
-- **Group rooms** — public channels anyone can join; create rooms from the sidebar
-- **Direct messages** — private one-on-one conversations over authenticated private channels
-- **1:1 audio/video calling** — WebRTC calls over DMs (ring, accept/decline, mute, camera toggle, screen share, picture-in-picture), signaled via Pusher whispers with a perfect-negotiation peer connection; missed-call badges and a merged call/message history timeline. TURN relay via Cloudflare Realtime for NAT/AP-isolated networks — see backend README for setup
-- **End-to-end encrypted DMs** — messages encrypted client-side (libsodium) with a passphrase-derived key hierarchy independent of your login password; auto-locks after 15 minutes idle, with peer key-reset detection (re-wrap + TOFU banner) and a plaintext-downgrade guard
-- **Typing indicators** — live "user is typing…" in both rooms and DMs
-- **Live everywhere** — subscribed to *all* your conversations, so closed chats still get unread badges, last-message previews, and reorder to the top in real time
-- **Read receipts & unread counts** — conversations are marked read on open
-- **Edit & delete** — edit your own messages within 15 minutes (hover/tap actions, composer edit mode, "(edited)" label); soft-delete anytime with a two-tap confirm, leaving a "this message was deleted" tombstone. Both sync live to the other side
-- **Smart scrolling** — auto-scrolls only when you're near the bottom; otherwise shows a "N new messages" pill
-- **Message UX** — date separators (Today/Yesterday), grouped consecutive messages, auto-growing composer (Enter sends, Shift+Enter for newline)
-- **Session restore** — refresh-safe auth: token in localStorage, user re-fetched via `/api/me` behind a route guard
-- **Light/dark mode** — toggle persisted to localStorage, defaults to OS preference, no flash on load
-- **Responsive** — 3-pane layout on desktop (icon rail / list / thread), slide-over drawer on mobile
-- **Search & filters** — filter the sidebar by All / DMs / Rooms and search by name
-- **Connection indicator** — live Online / Connecting / Offline state from the Pusher socket
+- Group rooms: public channels anyone can join. Create rooms from the sidebar.
+- Direct messages: private one-on-one conversations over authenticated private channels.
+- 1:1 audio/video calling. Native WebRTC calls over DMs with ring, accept/decline, mute, camera toggle, screen share, and picture-in-picture. Signaling runs over Pusher whispers with a perfect-negotiation peer connection. Missed-call badges and a merged call/message history timeline. TURN relay via Cloudflare Realtime covers NAT and AP-isolated networks (see the backend README for setup).
+- End-to-end encrypted DMs. Messages are encrypted client-side with libsodium, using a passphrase-derived key hierarchy that is independent of your login password. Keys auto-lock after 15 minutes idle. Peer key resets are detected (re-wrap plus a TOFU banner), and a downgrade guard blocks silent fallback to plaintext.
+- Typing indicators: live "user is typing…" in both rooms and DMs.
+- Subscribed to all your conversations at once, so closed chats still get unread badges, last-message previews, and reorder to the top in real time.
+- Read receipts and unread counts. Conversations are marked read on open.
+- Edit and delete. You can edit your own messages within 15 minutes (hover/tap actions, composer edit mode, "(edited)" label) and soft-delete anytime with a two-tap confirm, which leaves a "this message was deleted" tombstone. Both sync live to the other side.
+- Scrolling that stays out of the way: auto-scrolls only when you're near the bottom, otherwise shows a "N new messages" pill.
+- Date separators (Today/Yesterday), grouped consecutive messages, and an auto-growing composer (Enter sends, Shift+Enter for a newline).
+- Session restore. Refresh-safe auth: the token lives in localStorage and the user is re-fetched via `/api/me` behind a route guard.
+- Light/dark mode toggle, persisted to localStorage. Defaults to the OS preference with no flash on load.
+- Responsive: a 3-pane layout on desktop (icon rail / list / thread), slide-over drawer on mobile.
+- Sidebar search and filters (All / DMs / Rooms, search by name).
+- Connection indicator with live Online / Connecting / Offline state from the Pusher socket.
 
-## Tech Stack
+## Tech stack
 
 | | |
 |---|---|
@@ -38,14 +38,14 @@ Talks to the Laravel backend in the `chatApp-Backend` repository over REST (`/ap
 | Testing | Vitest + happy-dom |
 | Font | Sora (Google Fonts) |
 
-## Getting Started
+## Getting started
 
 ```bash
 npm install
 npm run dev        # serves on all interfaces (--host) at :5173
 ```
 
-The backend must be running — see the backend README. Short version:
+The backend must be running. See the backend README, but the short version is:
 
 ```bash
 php artisan serve --host=0.0.0.0   # terminal 1
@@ -77,12 +77,12 @@ npm run lint      # oxlint + eslint
 npm run format    # prettier
 ```
 
-## Project Structure
+## Project structure
 
 ```
 src/
 ├── lib/
-│   ├── config.ts    # API_ORIGIN — auto-detects the backend host
+│   ├── config.ts    # API_ORIGIN - auto-detects the backend host
 │   ├── api.ts       # fetch wrapper: bearer token, X-Socket-ID, 401, 204, pagination types
 │   ├── echo.ts      # lazy Echo factory (private channel auth), connectionState ref
 │   ├── theme.ts     # light/dark mode: localStorage + .dark class on <html>
@@ -112,8 +112,8 @@ src/
 
 ## Theming
 
-All colors flow through semantic tokens defined in `src/assets/main.css` (`--ink-*`, `--glass-*`, `--field-bg`, `--edge`, ...) with light values on `:root` and dark values on `.dark`. They're exposed as Tailwind utilities via `@theme inline` — use `text-ink`, `text-ink-3`, `bg-field`, `border-edge`, `bg-hovered`, `bg-active` instead of raw palette colors so new UI stays theme-aware automatically.
+All colors flow through semantic tokens defined in `src/assets/main.css` (`--ink-*`, `--glass-*`, `--field-bg`, `--edge`, ...) with light values on `:root` and dark values on `.dark`. They're exposed as Tailwind utilities via `@theme inline`. Use `text-ink`, `text-ink-3`, `bg-field`, `border-edge`, `bg-hovered`, `bg-active` instead of raw palette colors so new UI stays theme-aware without extra work.
 
-## Recommended IDE Setup
+## Recommended IDE setup
 
 [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar).

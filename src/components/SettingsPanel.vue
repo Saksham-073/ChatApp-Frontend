@@ -32,7 +32,7 @@ async function submitChange() {
     oldPass.value = ''
     newPass.value = ''
   } else {
-    changeMsg.value = 'Could not update — check your current passphrase.'
+    changeMsg.value = 'Could not update. Check your current passphrase.'
   }
 }
 

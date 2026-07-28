@@ -98,7 +98,7 @@ export const useDmStore = defineStore('dm', () => {
 
   /**
    * Listen on our personal channel so the FIRST message of a brand-new
-   * conversation arrives live — we can't be subscribed to a conversation
+   * conversation arrives live - we can't be subscribed to a conversation
    * we don't know exists yet.
    */
   function subscribeSelf() {
@@ -107,7 +107,7 @@ export const useDmStore = defineStore('dm', () => {
     selfSubscribed = true
 
     getEcho().private(`user.${auth.user.id}`).listen('DirectMessageSent', async (e: DirectMessage) => {
-      // Known conversation — its own channel listener already handles it
+      // Known conversation - its own channel listener already handles it
       if (conversations.value.find(c => c.id === e.conversation_id)) return
       // New conversation: pull the list (brings unread count + preview) and subscribe to it
       await fetchConversations()
@@ -118,7 +118,7 @@ export const useDmStore = defineStore('dm', () => {
         for (const conv of conversations.value) {
           if (conv.other_user.id === e.user_id) {
             conv.other_user.public_key = e.public_key
-            // We still hold the CK — re-wrap it to the peer's new key so their history heals
+            // We still hold the CK - re-wrap it to the peer's new key so their history heals
             await keys.rewrapForPeer(conv.id, e.user_id, e.public_key)
           }
         }
@@ -196,7 +196,7 @@ export const useDmStore = defineStore('dm', () => {
     try {
       await api.post(`/conversations/${conv.id}/read`, {})
     } catch {
-      // Non-critical — unread state will self-correct on next conversations fetch
+      // Non-critical - unread state will self-correct on next conversations fetch
     }
   }
 
@@ -209,7 +209,7 @@ export const useDmStore = defineStore('dm', () => {
       const keys = useKeysStore()
 
       if (!conv.other_user.public_key) {
-        error.value = 'This person has not enabled encryption yet — messages cannot be sent until they do.'
+        error.value = 'This person has not enabled encryption yet. Messages cannot be sent until they do.'
         return
       }
       if (keys.status !== 'unlocked') {
@@ -249,13 +249,13 @@ export const useDmStore = defineStore('dm', () => {
     getEcho().private(`conversation.${convId}`).listen('DirectMessageSent', async (e: DirectMessage) => {
       const msg = await toPlain(e)
       if (currentConv.value?.id === msg.conversation_id) {
-        // Conversation is open — show the message and mark it read immediately
+        // Conversation is open - show the message and mark it read immediately
         if (!messages.value.find(m => m.id === msg.id)) {
           messages.value.push(msg)
         }
         markRead(currentConv.value)
       } else {
-        // Closed conversation — bump its unread badge
+        // Closed conversation - bump its unread badge
         const conv = conversations.value.find(c => c.id === msg.conversation_id)
         if (conv) conv.unread_count = (conv.unread_count ?? 0) + 1
       }
@@ -324,7 +324,7 @@ export const useDmStore = defineStore('dm', () => {
       const keys = useKeysStore()
 
       if (!conv.other_user.public_key) {
-        error.value = 'This person has not enabled encryption yet — messages cannot be sent until they do.'
+        error.value = 'This person has not enabled encryption yet. Messages cannot be sent until they do.'
         return
       }
       if (keys.status !== 'unlocked') {

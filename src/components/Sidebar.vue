@@ -260,7 +260,7 @@ function isActiveConv(conv: Conversation) {
           </li>
         </ul>
         <p v-if="!chat.loadingRooms && !filteredRooms.length" class="text-ink-4 text-xs px-3 mb-3">
-          No rooms — create one with +
+          No rooms yet. Create one with +
         </p>
       </template>
 

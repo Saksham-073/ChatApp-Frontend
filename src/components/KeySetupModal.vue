@@ -31,7 +31,7 @@ async function submit() {
       emit('close')
     } else {
       errorMsg.value =
-        mode.value === 'unlock' ? 'Wrong passphrase — try again.' : keys.error || 'Something went wrong.'
+        mode.value === 'unlock' ? 'Wrong passphrase. Try again.' : keys.error || 'Something went wrong.'
     }
   } finally {
     busy.value = false

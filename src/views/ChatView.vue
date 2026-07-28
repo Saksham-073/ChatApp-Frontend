@@ -441,7 +441,7 @@ watch(
       }
     }
     if (s === 'locked' && prev === 'unlocked') {
-      // Auto-lock (idle timeout) — surface the unlock prompt even if it was dismissed earlier
+      // Auto-lock (idle timeout) - surface the unlock prompt even if it was dismissed earlier
       keySetupDismissed.value = false
     }
   },
@@ -607,7 +607,7 @@ onUnmounted(() => {
             </div>
 
             <div v-else-if="!renderItems.length" class="flex-1 flex items-center justify-center">
-              <p class="text-ink-4 text-sm">No messages yet — say something!</p>
+              <p class="text-ink-4 text-sm">No messages yet. Say something!</p>
             </div>
 
             <template v-for="(item, idx) in renderItems" :key="item.key">
@@ -791,7 +791,7 @@ onUnmounted(() => {
           </div>
           <div v-else class="glass rounded-2xl flex items-center justify-between gap-3 p-4">
             <span class="text-ink-3 text-sm"
-              >You're not friends yet — add them to start messaging.</span
+              >You're not friends yet. Add them to start messaging.</span
             >
             <button
               v-if="nonFriendComposerAction === 'received'"
