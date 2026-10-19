@@ -773,7 +773,7 @@ onUnmounted(() => {
                     : 'Message'
               "
               maxlength="2000"
-              class="flex-1 resize-none bg-transparent px-3 py-2 text-ink text-sm outline-none placeholder-ink-4 field-sizing-content max-h-[120px]"
+              class="flex-1 resize-none bg-transparent px-3 py-2 text-ink text-sm outline-none placeholder-ink-4 field-sizing-content max-h-30"
               @input="onComposerInput"
               @keydown="onKeydown"
             />
@@ -786,7 +786,7 @@ onUnmounted(() => {
                 v-if="isSending"
                 class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
               />
-              <Icon v-else icon="lucide:send-horizontal" class="w-[18px] h-[18px]" />
+              <Icon v-else icon="lucide:send-horizontal" class="w-4.5 h-4.5" />
             </button>
           </div>
           <div v-else class="glass rounded-2xl flex items-center justify-between gap-3 p-4">
